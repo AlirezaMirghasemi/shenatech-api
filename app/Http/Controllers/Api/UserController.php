@@ -1,14 +1,17 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Models\User;
+use App\Interfaces\UserServiceInterface; // Inject Service Interface
 use App\Http\Resources\UserResource;
-use App\Contracts\Services\UserServiceInterface;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\User\UploadProfileImageRequest;
+use App\Http\Requests\User\AssignRolesRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request; // Needed for type hinting if not using specific requests sometimes
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
@@ -19,51 +22,76 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): JsonResponse
     {
-        Gate::authorize('manage users');
-        $users = $this->userService->getAllUsers();
-        return UserResource::collection($users);
+        // Pass query parameters for potential filtering in service
+        $users = $this->userService->getAllUsers($request->query());
+        return UserResource::collection($users)->response();
     }
 
-    public function store(StoreUserRequest $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->userService->createUser($request->validated());
-        return new UserResource($user);
+        return (new UserResource($user))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED); // 201
     }
 
-    public function show(int $id)
+    /**
+     * Display the specified resource.
+     * We use route model binding here for simplicity,
+     * but the service layer also handles finding the user.
+     */
+    public function show(User $user): JsonResponse // Using Route Model Binding
     {
-        $user = $this->userService->getUserById($id);
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        return new UserResource($user);
+        // Service layer handles authorization and loading relations if needed via getUserById
+        $loadedUser = $this->userService->getUserById($user->id); // Re-fetch via service for consistency if needed
+        return (new UserResource($loadedUser))->response();
     }
 
-    public function update(UpdateUserRequest $request, int $id)
+    /**
+     * Update the specified resource in storage.
+     * Using route model binding here.
+     */
+    public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $user = $this->userService->updateUser($id, $request->validated());
-        return new UserResource($user);
+        $updatedUser = $this->userService->updateUser($user->id, $request->validated());
+        return (new UserResource($updatedUser))->response();
     }
 
-    public function destroy(int $id)
+    /**
+     * Remove the specified resource from storage.
+     * Using route model binding here.
+     */
+    public function destroy(User $user): JsonResponse
     {
-        Gate::authorize('manage users');
-        if ($this->userService->deleteUser($id)) {
-            return response()->json(['message' => 'User deleted']);
-        }
-        return response()->json(['error' => 'User not found'], 404);
+        $this->userService->deleteUser($user->id);
+        return response()->json(null, Response::HTTP_NO_CONTENT); // 204
     }
 
-    public function uploadProfileImage(Request $request, int $id)
+    /**
+     * Upload profile image for the specified user.
+     * Using route model binding here.
+     */
+    public function uploadProfileImage(UploadProfileImageRequest $request, User $user): JsonResponse
     {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $updatedUser = $this->userService->uploadProfileImage($user->id, $request->file('profile_image'));
+        return (new UserResource($updatedUser))->response();
+    }
 
-        Gate::authorize('edit own profile', $this->userService->getUserById($id));
-        $user = $this->userService->uploadProfileImage($id, $request->file('image'));
-        return new UserResource($user);
+    /**
+     * Assign roles to the specified user.
+     * Using route model binding here.
+     */
+    public function assignRoles(AssignRolesRequest $request, User $user): JsonResponse
+    {
+        $updatedUser = $this->userService->assignRolesToUser($user->id, $request->validated('roles'));
+        return (new UserResource($updatedUser))->response();
     }
 }

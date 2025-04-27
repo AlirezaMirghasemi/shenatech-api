@@ -1,77 +1,57 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\UserResource;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Cookie;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function __construct(private AuthService $authService) {}
+
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
+        $user = $this->authService->register($request->validated());
         return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
-    }
-
-    public function register(Request $request)
-    {
-        $request->validate([
-            'username' => 'required|string|max:50|unique:users',
-            'email' => 'required|email|max:100|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'first_name' => 'nullable|string|max:100',
-            'last_name' => 'nullable|string|max:100',
-            'mobile' => 'nullable|string|max:20|unique:users',
-        ]);
-
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'mobile' => $request->mobile,
-        ]);
-
-        $user->assignRole('Viewer');
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'message' => 'User registered successfully. Please login.',
+            'data'    => new UserResource($user)
         ], 201);
     }
 
-    public function logout(Request $request)
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->user()->currentToken()->delete();
-
-        return response()->json(['message' => 'Logged out']);
+        $user = $this->authService->login($request->validated());
+        return response()->json([
+            'data' => new UserResource($user)
+        ], 200);
     }
 
-    public function user(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        $this->authService->logout($request);
+
+        // منقضی‌سازی کوکی‌های HttpOnly
+        $cookie = Cookie::forget($request->session()->getName());
+
+
+        return response()
+            ->json(['message' => 'Logged out successfully'], 200)
+            ->withCookie($cookie);
+    }
+
+
+    public function user(): JsonResponse
+    {
+        $user = auth()->user();
+        return response()->json([
+            'data' => $user
+                ? new UserResource($user)
+                : null
+        ], $user ? 200 : 401);
     }
 }

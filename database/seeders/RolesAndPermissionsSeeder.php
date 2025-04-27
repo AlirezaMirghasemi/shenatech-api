@@ -9,68 +9,94 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // General Permissions
-        Permission::create(['name' => 'view published content']);
+        // --- Define Permissions ---
 
         // User Permissions
-        Permission::create(['name' => 'manage users']);
-        Permission::create(['name' => 'create users']);
-        Permission::create(['name' => 'edit own profile']);
-        Permission::create(['name' => 'delete own profile']);
+        Permission::firstOrCreate(['name' => 'view users']);
+        Permission::firstOrCreate(['name' => 'manage users']); // CRUD all users
+        Permission::firstOrCreate(['name' => 'assign roles']);
+        Permission::firstOrCreate(['name' => 'view own profile']);
+        Permission::firstOrCreate(['name' => 'edit own profile']);
+
+        // Role & Permission Management
+        Permission::firstOrCreate(['name' => 'view roles']);
+        Permission::firstOrCreate(['name' => 'manage roles']); // CRUD roles & assign permissions
+        Permission::firstOrCreate(['name' => 'view permissions']);
 
         // Article Permissions
-        Permission::create(['name' => 'manage articles']);
-        Permission::create(['name' => 'create articles']);
-        Permission::create(['name' => 'edit own articles']);
-        Permission::create(['name' => 'delete own articles']);
-        Permission::create(['name' => 'publish articles']);
+        Permission::firstOrCreate(['name' => 'view articles']); // View published/approved articles
+        Permission::firstOrCreate(['name' => 'manage articles']); // CRUD all articles, change status
+        Permission::firstOrCreate(['name' => 'create articles']);
+        Permission::firstOrCreate(['name' => 'edit own articles']);
+        Permission::firstOrCreate(['name' => 'delete own articles']);
+        Permission::firstOrCreate(['name' => 'publish articles']); // Approve/reject articles
 
-        // Event Permissions
-        Permission::create(['name' => 'manage events']);
-        Permission::create(['name' => 'create events']);
-        Permission::create(['name' => 'edit own events']);
-        Permission::create(['name' => 'delete own events']);
-        Permission::create(['name' => 'publish events']);
+        // Event Permissions (similar to articles)
+        Permission::firstOrCreate(['name' => 'view events']);
+        Permission::firstOrCreate(['name' => 'manage events']);
+        Permission::firstOrCreate(['name' => 'create events']);
+        Permission::firstOrCreate(['name' => 'edit own events']);
+        Permission::firstOrCreate(['name' => 'delete own events']);
+        Permission::firstOrCreate(['name' => 'publish events']);
 
-        // Video Permissions
-        Permission::create(['name' => 'manage videos']);
-        Permission::create(['name' => 'create videos']);
-        Permission::create(['name' => 'edit own videos']);
-        Permission::create(['name' => 'delete own videos']);
-        Permission::create(['name' => 'publish videos']);
+        // Video Permissions (similar to articles)
+        Permission::firstOrCreate(['name' => 'view videos']);
+        Permission::firstOrCreate(['name' => 'manage videos']);
+        Permission::firstOrCreate(['name' => 'create videos']);
+        Permission::firstOrCreate(['name' => 'edit own videos']);
+        Permission::firstOrCreate(['name' => 'delete own videos']);
+        Permission::firstOrCreate(['name' => 'publish videos']);
 
         // Comment Permissions
-        Permission::create(['name' => 'manage comments']);
-        Permission::create(['name' => 'create comments']);
-        Permission::create(['name' => 'edit own comments']);
-        Permission::create(['name' => 'delete own comments']);
+        Permission::firstOrCreate(['name' => 'view comments']); // View approved comments
+        Permission::firstOrCreate(['name' => 'manage comments']); // Approve/reject/delete all comments
+        Permission::firstOrCreate(['name' => 'create comments']);
+        Permission::firstOrCreate(['name' => 'edit own comments']); // Maybe time-limited?
+        Permission::firstOrCreate(['name' => 'delete own comments']);
 
-        // Taxonomy Permissions
-        Permission::create(['name' => 'manage tags']);
-        Permission::create(['name' => 'manage slugs']);
+        // Taxonomy Permissions (Tags & Slugs)
+        Permission::firstOrCreate(['name' => 'view tags']);
+        Permission::firstOrCreate(['name' => 'manage tags']);
+        Permission::firstOrCreate(['name' => 'view slugs']);
+        Permission::firstOrCreate(['name' => 'manage slugs']);
 
-        // Media Permissions
-        Permission::create(['name' => 'manage images']);
+        // Media Permissions (Images)
+        Permission::firstOrCreate(['name' => 'view images']); // View own/related images?
+        Permission::firstOrCreate(['name' => 'manage images']); // Upload, delete all images
+        Permission::firstOrCreate(['name' => 'upload images']);
 
-        // Role and Permission Management
-        Permission::create(['name' => 'manage roles']);
-        Permission::create(['name' => 'manage permissions']);
 
-        // Create Roles
-        $viewer = Role::create(['name' => 'Viewer']);
-        $viewer->givePermissionTo(['view published content', 'create comments']);
+        // --- Define Roles and Assign Permissions ---
 
-        $contributor = Role::create(['name' => 'Contributor']);
-        $contributor->givePermissionTo([
-            'view published content',
+        // Viewer Role (Guest/Basic User)
+        $viewerRole = Role::firstOrCreate(['name' => 'Viewer']);
+        $viewerRole->givePermissionTo([
+            'view own profile',
+            'edit own profile',
+            'view articles',
+            'view events',
+            'view videos',
+            'view comments',
             'create comments',
-            'edit own comments',
+            'edit own comments', // Consider adding time limit logic later
             'delete own comments',
+            'view tags',
+            'view slugs',
+            'view images', // Maybe restrict further?
+            'upload images', // Allow users to upload their own profile pic etc.
+        ]);
+
+        // Contributor Role (Can create content, needs approval)
+        $contributorRole = Role::firstOrCreate(['name' => 'Contributor']);
+        $contributorRole->givePermissionTo([
             'create articles',
             'edit own articles',
             'delete own articles',
@@ -80,23 +106,49 @@ class RolesAndPermissionsSeeder extends Seeder
             'create videos',
             'edit own videos',
             'delete own videos',
-            'edit own profile',
         ]);
+        $contributorRole->syncPermissions($viewerRole->permissions->pluck('name')->toArray()); // Inherit Viewer permissions
 
-        $editor = Role::create(['name' => 'Editor']);
-        $editor->givePermissionTo([
-            'view published content',
-            'manage comments',
+        // Editor Role (Can manage content, taxonomy, comments)
+        $editorRole = Role::firstOrCreate(['name' => 'Editor']);
+        $editorRole->givePermissionTo([
             'publish articles',
             'publish events',
             'publish videos',
+            'manage comments',
             'manage tags',
             'manage slugs',
-            'manage images',
+            'manage images', // Can manage all images
+            'view users', // Can view user list
         ]);
-        $editor->syncPermissions($contributor->permissions);
+        // Inherit Contributor permissions (which already includes Viewer)
+        $editorRole->syncPermissions(
+            array_merge($contributorRole->permissions->pluck('name')->toArray(), $editorRole->permissions->pluck('name')->toArray())
+        );
 
-        $admin = Role::create(['name' => 'Admin']);
-        $admin->givePermissionTo(Permission::all());
+
+        // Admin Role (Full Access)
+        // Use firstOrCreate to avoid creating duplicates on re-seeding
+        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
+        // Grant all permissions to Admin (alternative to listing all)
+        $adminRole->syncPermissions(Permission::all());
+
+        // --- (Optional) Create a default Admin User ---
+        // You might want to create an initial admin user here
+        $adminUser = \App\Models\User::firstOrCreate(
+            ['email' => 'alireza.mirghasemi@gmail.com'],
+            [
+                'username' => 'don_miralone',
+                'first_name' => 'Alireza',
+                'last_name' => 'Mirghasemi',
+                'password' => bcrypt('2129638Dm@14'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $adminUser->assignRole($adminRole);
+
+        // Clear cache again after seeding
+        app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        echo "Roles and Permissions seeded successfully.\n";
     }
 }

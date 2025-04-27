@@ -1,46 +1,65 @@
 <?php
-
 namespace App\Providers;
 
-use App\Contracts\Repositories\ArticleRepositoryInterface;
-use App\Contracts\Repositories\RoleRepositoryInterface;
-use App\Contracts\Repositories\UserRepositoryInterface;
-use App\Contracts\Services\ArticleServiceInterface;
-use App\Contracts\Services\RoleServiceInterface;
-use App\Contracts\Services\UserServiceInterface;
-use App\Repositories\EloquentArticleRepository;
-use App\Repositories\EloquentRoleRepository;
-use App\Repositories\EloquentUserRepository;
-use App\Services\ArticleService;
-use App\Services\RoleService;
-use App\Services\UserService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+
+// Import Interfaces
+use App\Interfaces\UserRepositoryInterface;
+use App\Interfaces\UserServiceInterface;
+use App\Interfaces\RoleRepositoryInterface;
+use App\Interfaces\RoleServiceInterface;
+use App\Interfaces\PermissionRepositoryInterface;
+use App\Interfaces\PermissionServiceInterface;
+// ... import other interfaces
+
+// Import Implementations
+use App\Repositories\UserRepository;
+use App\Services\UserService;
+use App\Repositories\RoleRepository;
+use App\Services\RoleService;
+use App\Repositories\PermissionRepository;
+use App\Services\PermissionService;
+// ... import other implementations
+
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Register services.
      */
     public function register(): void
     {
-        // User
-        $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
+        // Bind User related interfaces
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(UserServiceInterface::class, UserService::class);
 
-        // Role
-        $this->app->bind(RoleRepositoryInterface::class, EloquentRoleRepository::class);
+        // Bind Role related interfaces
+        $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(RoleServiceInterface::class, RoleService::class);
 
-        // Article
-        $this->app->bind(ArticleRepositoryInterface::class, EloquentArticleRepository::class);
-        $this->app->bind(ArticleServiceInterface::class, ArticleService::class);
-    }
+        // Bind Permission related interfaces
+        $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
+        $this->app->bind(PermissionServiceInterface::class, PermissionService::class);
 
+        // ... bind other interfaces to their implementations
+        // $this->app->bind(ArticleRepositoryInterface::class, ArticleRepository::class);
+        // $this->app->bind(ArticleServiceInterface::class, ArticleService::class);
+
+    }
+    public function configureRateLimiting()
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
+    }
     /**
-     * Bootstrap any application services.
+     * Bootstrap services.
      */
     public function boot(): void
     {
-        //
+        $this->configureRateLimiting();
     }
 }

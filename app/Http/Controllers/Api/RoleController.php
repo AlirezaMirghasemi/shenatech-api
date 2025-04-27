@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRoleRequest;
-use App\Http\Requests\UpdateRoleRequest;
+use App\Http\Requests\Role\StoreRoleRequest; // Store Request
+use App\Http\Requests\Role\UpdateRoleRequest; // Update Request
+use App\Http\Requests\Role\AssignPermissionsRequest; // Assign Permissions Request
 use App\Http\Resources\RoleResource;
-use App\Contracts\Services\RoleServiceInterface;
-use Exception;
-use Illuminate\Support\Facades\Gate;
+use App\Interfaces\RoleServiceInterface;
+use Spatie\Permission\Models\Role; // For Route Model Binding
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request; // Needed for type hinting sometimes
+use Symfony\Component\HttpFoundation\Response; // For status codes
+
 
 class RoleController extends Controller
 {
@@ -17,49 +21,70 @@ class RoleController extends Controller
     public function __construct(RoleServiceInterface $roleService)
     {
         $this->roleService = $roleService;
+        // Authorization is primarily handled within the Service layer methods
+        // but you can add middleware here for clarity or pre-checks if preferred.
+        // $this->middleware('permission:view roles')->only(['index', 'show']);
+        // $this->middleware('permission:manage roles')->only(['store', 'update', 'destroy', 'assignPermissions']);
     }
 
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): JsonResponse
     {
-        Gate::authorize('manage roles');
-        $roles = $this->roleService->getAllRoles();
-        return RoleResource::collection($roles);
+        $roles = $this->roleService->getAllRoles(); // Service handles authorization
+        return RoleResource::collection($roles)->response();
     }
 
-    public function store(StoreRoleRequest $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreRoleRequest $request): JsonResponse
     {
-        $role = $this->roleService->createRole($request->validated());
-        if (isset($request["permissions"])) {
-            $role->syncPermissions($request["permissions"]);
-        }
-        return new RoleResource($role);
+        $role = $this->roleService->createRole($request->validated()); // Service handles authorization and permission assignment
+        return (new RoleResource($role))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED); // 201
     }
 
-    public function show(int $id)
+    /**
+     * Display the specified resource.
+     * Using route model binding.
+     */
+    public function show(Role $role): JsonResponse // Using Route Model Binding
     {
-        Gate::authorize('manage roles');
-        $role = $this->roleService->getRoleById($id);
-        if (!$role) {
-            return response()->json(['error' => 'Role not found'], 404);
-        }
-        return new RoleResource($role);
+        // Service layer handles authorization and loading relations if needed via findRoleById
+        $loadedRole = $this->roleService->findRoleById($role->id); // Re-fetch via service for consistency if needed
+        return (new RoleResource($loadedRole))->response();
     }
 
-    public function update(UpdateRoleRequest $request, int $id)
+    /**
+     * Update the specified resource in storage.
+     * Using route model binding.
+     */
+    public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
-        $role = $this->roleService->updateRole($id, $request->validated());
-        if (isset($request["permissions"])) {
-            $role->syncPermissions($request["permissions"]);
-        }
-        return new RoleResource($role);
+        $updatedRole = $this->roleService->updateRole($role->id, $request->validated()); // Service handles authorization and permission assignment
+        return (new RoleResource($updatedRole))->response();
     }
 
-    public function destroy(int $id)
+    /**
+     * Remove the specified resource from storage.
+     * Using route model binding.
+     */
+    public function destroy(Role $role): JsonResponse
     {
-        Gate::authorize('manage roles');
-        if ($this->roleService->deleteRole($id)) {
-            return response()->json(['message' => 'Role deleted']);
-        }
-        return response()->json(['error' => 'Role not found'], 404);
+        $this->roleService->deleteRole($role->id); // Service handles authorization and constraints
+        return response()->json(null, Response::HTTP_NO_CONTENT); // 204
+    }
+
+    /**
+     * Assign permissions to the specified role.
+     * Using route model binding.
+     */
+    public function assignPermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
+    {
+        $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $request->validated('permissions')); // Service handles authorization and validation
+        return (new RoleResource($updatedRole))->response();
     }
 }

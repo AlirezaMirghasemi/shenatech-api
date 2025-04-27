@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -31,30 +33,48 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
         'gender' => \App\Enums\UserGender::class,
     ];
 
-    public function profileImage()
+    // --- Relationships ---
+
+    /**
+     * رابطه کاربر با تصویر پروفایل (یک به یک معکوس)
+     */
+    public function profileImage(): BelongsTo
     {
         return $this->belongsTo(Image::class, 'image_id');
     }
 
-    public function articles()
+    /**
+     * رابطه کاربر با مقالات (یک به چند)
+     */
+    public function articles(): HasMany
     {
         return $this->hasMany(Article::class);
     }
 
-    public function events()
+    /**
+     * رابطه کاربر با رویدادها (یک به چند)
+     */
+    public function events(): HasMany
     {
         return $this->hasMany(Event::class);
     }
 
-    public function videos()
+    /**
+     * رابطه کاربر با ویدئوها (یک به چند)
+     */
+    public function videos(): HasMany
     {
         return $this->hasMany(Video::class);
     }
 
-    public function comments()
+    /**
+     * رابطه کاربر با کامنت‌ها (یک به چند)
+     */
+    public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }

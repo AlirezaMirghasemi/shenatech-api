@@ -1,61 +1,161 @@
 <?php
-
 namespace App\Services;
 
-use App\Contracts\Repositories\UserRepositoryInterface;
-use App\Contracts\Services\UserServiceInterface;
+use App\Interfaces\UserRepositoryInterface;
+use App\Interfaces\UserServiceInterface;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Gate; // For authorization
+use Illuminate\Support\Facades\Log; // For logging errors
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Spatie\Permission\Models\Role; // Import Role model
+use Illuminate\Validation\ValidationException;
 
 class UserService implements UserServiceInterface
 {
-    protected $repository;
+    protected $userRepository;
 
-    public function __construct(UserRepositoryInterface $repository)
+    public function __construct(UserRepositoryInterface $userRepository)
     {
-        $this->repository = $repository;
+        $this->userRepository = $userRepository;
     }
 
-    public function getAllUsers(): Collection
+    public function getAllUsers(array $filters = []): SupportCollection
     {
-        return $this->repository->all();
+        // Authorization Check
+        if (Gate::denies('view users')) {
+            throw new AuthorizationException('You do not have permission to view users.');
+        }
+        // Eager load roles and profile image for efficiency
+        return $this->userRepository->getAllUsers($filters, ['roles', 'profileImage']);
     }
 
     public function getUserById(int $id): ?User
     {
-        return $this->repository->find($id);
+        $user = $this->userRepository->findUserById($id, ['roles', 'permissions', 'profileImage']);
+        if (!$user) {
+            throw new NotFoundHttpException("User with ID {$id} not found.");
+        }
+
+        // Authorization Check (View own profile or manage users)
+        $currentUser = auth()->user(); // Get the currently authenticated user
+        if ($currentUser->id !== $user->id && Gate::denies('view users')) {
+            throw new AuthorizationException('You do not have permission to view this user.');
+        }
+
+        return $user;
     }
 
-    public function createUser(array $data): User
+    public function createUser(array $userData): User
     {
-        return $this->repository->create($data);
+        // Authorization Check
+        if (Gate::denies('manage users')) {
+            throw new AuthorizationException('You do not have permission to create users.');
+        }
+        // Note: Password hashing is handled in Repository or RegisterRequest/AuthService
+        $user = $this->userRepository->createUser($userData);
+
+        // Assign roles if provided and user has permission
+        if (isset($userData['roles']) && auth()->user()->can('assign roles')) {
+            $this->assignRolesToUser($user->id, $userData['roles']);
+        } elseif (isset($userData['roles'])) {
+            Log::warning('User tried to assign roles during creation without permission.', ['creator_id' => auth()->id(), 'target_user_data' => $userData]);
+        } else {
+            // Assign default role if no roles provided
+            $user->assignRole('Viewer'); // Ensure 'Viewer' role exists
+        }
+
+        return $user->load('roles', 'profileImage'); // Load relations for response
     }
 
-    public function updateUser(int $id, array $data): User
+    public function updateUser(int $id, array $userData): User
     {
-        $this->repository->update($id, $data);
-        return $this->getUserById($id);
+        $user = $this->getUserById($id); // Handles NotFoundException
+
+        // Authorization Check (Edit own profile or manage users)
+        $currentUser = auth()->user();
+        if ($currentUser->id !== $user->id && Gate::denies('manage users') && Gate::denies('edit own profile', $user)) { // Check both general and specific permission
+            throw new AuthorizationException('You do not have permission to update this user.');
+        }
+
+        // Prevent users from escalating privileges unless they have 'assign roles' permission
+        if (isset($userData['roles']) && Gate::denies('assign roles')) {
+            // Log the attempt and remove roles from data to prevent update
+            Log::warning('User tried to update roles without permission.', ['updater_id' => $currentUser->id, 'target_user_id' => $id]);
+            unset($userData['roles']);
+        }
+
+        $this->userRepository->updateUser($user, $userData);
+
+        // Handle role assignment separately after user update if roles are provided and user has permission
+        if (isset($userData['roles']) && Gate::allows('assign roles')) {
+            $this->assignRolesToUser($user->id, $userData['roles']);
+        }
+
+        return $user->fresh(['roles', 'permissions', 'profileImage']); // Refresh model and load relations
     }
 
     public function deleteUser(int $id): bool
     {
-        return $this->repository->delete($id);
+        $user = $this->getUserById($id); // Handles NotFoundException
+
+        // Authorization Check
+        if (Gate::denies('manage users')) {
+            throw new AuthorizationException('You do not have permission to delete users.');
+        }
+
+        // Prevent deleting self? (Optional business rule)
+        if (auth()->id() === $id) {
+            throw new AuthorizationException('You cannot delete your own account.');
+        }
+
+        return $this->userRepository->deleteUser($user);
     }
 
-    public function uploadProfileImage(int $id, $file): User
+    public function uploadProfileImage(int $userId, UploadedFile $image): User
     {
-        $path = $file->store('profile', 'images');
-        $image = \App\Models\Image::create([
-            'title' => 'Profile Image',
-            'type' => \App\Enums\ImageType::PROFILE,
-            'path' => $path,
-            'disk' => 'images',
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-        ]);
+        $user = $this->getUserById($userId); // Handles NotFoundException
 
-        $this->repository->update($id, ['image_id' => $image->id]);
-        return $this->getUserById($id);
+        // Authorization Check (Upload own profile or manage users)
+        $currentUser = auth()->user();
+        if ($currentUser->id !== $user->id && Gate::denies('manage users') && Gate::denies('edit own profile', $user)) {
+            throw new AuthorizationException('You do not have permission to upload profile image for this user.');
+        }
+
+        $path = $this->userRepository->updateUserProfileImage($user, $image);
+
+        if (!$path) {
+            // Handle upload failure (log error, throw exception, etc.)
+            Log::error("Failed to upload profile image for user ID: {$userId}");
+            throw new \Exception("Profile image upload failed."); // Or a more specific exception
+        }
+
+        return $user->fresh('profileImage'); // Return user with updated image relation
+    }
+
+    public function assignRolesToUser(int $userId, array $roles): User
+    {
+        $user = $this->getUserById($userId);
+
+        // Authorization Check
+        if (Gate::denies('assign roles')) {
+            throw new AuthorizationException('You do not have permission to assign roles.');
+        }
+
+        // Validate that roles exist (optional but recommended)
+        $validRoles = Role::whereIn('name', $roles)->pluck('name')->toArray();
+        if (count($validRoles) !== count($roles)) {
+            $invalidRoles = array_diff($roles, $validRoles);
+            throw ValidationException::withMessages([
+                'roles' => ['Invalid roles provided: ' . implode(', ', $invalidRoles)],
+            ]);
+        }
+
+        // Use syncRoles to assign the exact roles provided, removing any others
+        $user->syncRoles($validRoles);
+
+        return $user->load('roles', 'permissions'); // Load relations for response
     }
 }
