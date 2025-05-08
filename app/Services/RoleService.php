@@ -24,21 +24,22 @@ class RoleService implements RoleServiceInterface
         $this->permissionRepository = $permissionRepository;
     }
 
-    public function getAllRoles(): SupportCollection
+    public function getAllRoles(int $perPage = 10)
     {
         // Authorization Check
         if (Gate::denies('view roles')) {
             throw new AuthorizationException('You do not have permission to view roles.');
         }
 
-        // Eager load permissions for the roles
-        return $this->roleRepository->getAllRoles(['permissions']);
+        $query = $this->roleRepository->getAllRoles(['permissions']);
+
+        return $query->paginate($perPage);
     }
 
     public function findRoleById(int $id): Role
     {
         // Authorization Check (view single role also requires 'view roles')
-         if (Gate::denies('view roles')) {
+        if (Gate::denies('view roles')) {
             throw new AuthorizationException('You do not have permission to view roles.');
         }
 
@@ -51,7 +52,7 @@ class RoleService implements RoleServiceInterface
 
     public function createRole(array $data): Role
     {
-         // Authorization Check
+        // Authorization Check
         if (Gate::denies('manage roles')) {
             throw new AuthorizationException('You do not have permission to create roles.');
         }
@@ -63,7 +64,7 @@ class RoleService implements RoleServiceInterface
         $role = $this->roleRepository->createRole($data);
 
         if (!empty($permissions)) {
-             $this->assignPermissionsToRole($role->id, $permissions); // Use the service method
+            $this->assignPermissionsToRole($role->id, $permissions); // Use the service method
         }
 
         return $role->load('permissions'); // Load permissions for response
@@ -73,10 +74,10 @@ class RoleService implements RoleServiceInterface
     {
         $role = $this->findRoleById($id); // Handles NotFoundException and initial Authorization
 
-         // Additional Authorization Check if specific updates are restricted
+        // Additional Authorization Check if specific updates are restricted
         if (Gate::denies('manage roles')) {
-             throw new AuthorizationException('You do not have permission to update roles.');
-         }
+            throw new AuthorizationException('You do not have permission to update roles.');
+        }
 
         // Validate and assign permissions if provided
         $permissions = $data['permissions'] ?? null; // Use null to differentiate between not provided and empty array
@@ -84,10 +85,10 @@ class RoleService implements RoleServiceInterface
 
         $this->roleRepository->updateRole($role, $data);
 
-         // Handle permission assignment separately if permissions were provided in the update data
-         if (is_array($permissions)) {
-              $this->assignPermissionsToRole($role->id, $permissions);
-         }
+        // Handle permission assignment separately if permissions were provided in the update data
+        if (is_array($permissions)) {
+            $this->assignPermissionsToRole($role->id, $permissions);
+        }
 
 
         return $role->fresh(['permissions']); // Refresh model and load permissions
@@ -95,14 +96,14 @@ class RoleService implements RoleServiceInterface
 
     public function deleteRole(int $id): bool
     {
-         // Authorization Check
+        // Authorization Check
         if (Gate::denies('manage roles')) {
             throw new AuthorizationException('You do not have permission to delete roles.');
         }
 
         $role = $this->findRoleById($id); // Handles NotFoundException
 
-         // Prevent deleting crucial roles like 'Admin' or 'Viewer' (Optional business logic)
+        // Prevent deleting crucial roles like 'Admin' or 'Viewer' (Optional business logic)
         if (in_array($role->name, ['Admin', 'Viewer'])) {
             throw new AuthorizationException("You cannot delete the {$role->name} role.");
         }
@@ -110,28 +111,28 @@ class RoleService implements RoleServiceInterface
         return $this->roleRepository->deleteRole($role);
     }
 
-     public function assignPermissionsToRole(int $roleId, array $permissions): Role
-     {
-         $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
+    public function assignPermissionsToRole(int $roleId, array $permissions): Role
+    {
+        $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
 
-          // Authorization Check
-         if (Gate::denies('manage roles')) { // Or a more specific permission like 'assign permissions to roles'
-             throw new AuthorizationException('You do not have permission to assign permissions to roles.');
-         }
+        // Authorization Check
+        if (Gate::denies('manage roles')) { // Or a more specific permission like 'assign permissions to roles'
+            throw new AuthorizationException('You do not have permission to assign permissions to roles.');
+        }
 
-         // Validate that permissions exist
-         $validPermissions = Permission::whereIn('name', $permissions)->pluck('name')->toArray();
-          if (count($validPermissions) !== count($permissions)) {
-              $invalidPermissions = array_diff($permissions, $validPermissions);
-              throw ValidationException::withMessages([
-                  'permissions' => ['Invalid permissions provided: ' . implode(', ', $invalidPermissions)],
-              ]);
-          }
+        // Validate that permissions exist
+        $validPermissions = Permission::whereIn('name', $permissions)->pluck('name')->toArray();
+        if (count($validPermissions) !== count($permissions)) {
+            $invalidPermissions = array_diff($permissions, $validPermissions);
+            throw ValidationException::withMessages([
+                'permissions' => ['Invalid permissions provided: ' . implode(', ', $invalidPermissions)],
+            ]);
+        }
 
 
-         // Use syncPermissions to assign the exact permissions provided, removing any others
-         $role->syncPermissions($validPermissions);
+        // Use syncPermissions to assign the exact permissions provided, removing any others
+        $role->syncPermissions($validPermissions);
 
-         return $role->load('permissions'); // Load permissions for response
-     }
+        return $role->load('permissions'); // Load permissions for response
+    }
 }

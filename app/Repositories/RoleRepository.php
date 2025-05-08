@@ -9,9 +9,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RoleRepository implements RoleRepositoryInterface
 {
-    public function getAllRoles(array $relations = []): Collection
+    public function getAllRoles(array $relations = [])
     {
-        return Role::with($relations)->get();
+        return Role::with($relations);
     }
 
     public function findRoleById(int $id, array $relations = []): ?Role

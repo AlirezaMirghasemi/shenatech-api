@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 
 interface RoleRepositoryInterface
 {
-    public function getAllRoles(array $relations = []): Collection;
+    public function getAllRoles(array $relations = []);
     public function findRoleById(int $id, array $relations = []): ?Role;
     public function findRoleByName(string $name, array $relations = []): ?Role;
     public function createRole(array $data): Role;

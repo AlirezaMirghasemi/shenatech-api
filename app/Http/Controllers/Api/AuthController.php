@@ -47,7 +47,7 @@ class AuthController extends Controller
 
     public function user(): JsonResponse
     {
-        $user = auth()->user();
+        $user = \Illuminate\Support\Facades\Auth::user();
         return response()->json([
             'data' => $user
                 ? new UserResource($user)

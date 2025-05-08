@@ -30,9 +30,10 @@ class RoleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $roles = $this->roleService->getAllRoles(); // Service handles authorization
+        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+        $roles = $this->roleService->getAllRoles($perPage);
         return RoleResource::collection($roles)->response();
     }
 
