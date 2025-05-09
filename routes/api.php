@@ -65,6 +65,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');
 
+
+        Route::get('/{role}/permissions', [RoleController::class, 'getRolePermissions'])
+            ->middleware('permission:view permissions')
+            ->name('role.permissions');
+
+        Route::get('/{role}/users', [RoleController::class, 'getRoleUsers'])
+            ->middleware('permission:view users')
+            ->name('role.users');
+
         // Store, Update, Destroy, AssignPermissions require 'manage roles'
         Route::middleware('permission:manage roles')->group(function () {
             Route::post('/', [RoleController::class, 'store'])->name('store');

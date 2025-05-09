@@ -88,4 +88,20 @@ class RoleController extends Controller
         $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $request->validated('permissions')); // Service handles authorization and validation
         return (new RoleResource($updatedRole))->response();
     }
+
+    public function getRolePermissions(Role $role, Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+
+        $permissionsResponse = $this->roleService->getRolePermissions($role, $perPage);
+        return $permissionsResponse;
+    }
+    public function getRoleUsers(Role $role, Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+
+        $usersResponse = $this->roleService->getRoleUsers($role, $perPage);
+        return $usersResponse;
+    }
+
 }

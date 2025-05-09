@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Http\Resources\PermissionResource;
+use App\Http\Resources\UserResource;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\PermissionRepositoryInterface; // Inject PermissionRepository
 use App\Interfaces\RoleServiceInterface;
@@ -9,6 +11,8 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Collection as SupportCollection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate; // For authorization
 use Illuminate\Validation\ValidationException; // For permission validation
 use Spatie\Permission\Models\Permission; // Import Permission model
@@ -134,5 +138,22 @@ class RoleService implements RoleServiceInterface
         $role->syncPermissions($validPermissions);
 
         return $role->load('permissions'); // Load permissions for response
+    }
+    public function getRolePermissions(Role $role, int $perPage = 10): JsonResponse
+    {
+        if (Gate::denies('view roles') || Gate::denies('view permissions')) {
+            throw new AuthorizationException('You do not have permission to view role permissions.');
+        }
+        $permissions = $role->permissions()->paginate($perPage);
+        return PermissionResource::collection($permissions)->response();
+    }
+    public function getRoleUsers(Role $role, int $perPage = 10): JsonResponse
+    {
+
+        if (Gate::denies('view roles') || Gate::denies('view users')) {
+            throw new AuthorizationException('You do not have permission to view role users.');
+        }
+        $users = $role->users()->paginate($perPage);
+        return UserResource::collection($users)->response();
     }
 }
