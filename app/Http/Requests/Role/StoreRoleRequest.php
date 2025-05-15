@@ -12,6 +12,7 @@ class StoreRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
+            'guard_name' => [ 'string', 'max:255','default:web'],
         ];
     }
 }

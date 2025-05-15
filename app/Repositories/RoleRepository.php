@@ -38,4 +38,9 @@ class RoleRepository implements RoleRepositoryInterface
     {
         return $role->delete();
     }
+
+    public function isUniqueRoleName(string $roleName): bool
+    {
+        return Role::where('name', $roleName)->doesntExist();
+    }
 }

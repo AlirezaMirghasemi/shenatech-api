@@ -27,7 +27,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
 });
 
 // Protected routes (Require authentication via Sanctum)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:web')->group(function () {
 
     // Authentication - Protected Endpoints
     Route::prefix('auth')->name('auth.')->group(function () {
@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Index and Show only require 'view roles'
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');
+        Route::get('/role-name-is-unique/{roleName}', [RoleController::class, 'isUnique'])->name('isUnique');
 
 
         Route::get('/{role}/permissions', [RoleController::class, 'getRolePermissions'])
@@ -74,6 +75,10 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('permission:view users')
             ->name('role.users');
 
+        Route::get('/{role}/not-permissions', [RoleController::class, 'getNotRolePermissions'])
+            ->middleware('permission:view permissions')
+            ->name('role.notPermissions');
+
         // Store, Update, Destroy, AssignPermissions require 'manage roles'
         Route::middleware('permission:manage roles')->group(function () {
             Route::post('/', [RoleController::class, 'store'])->name('store');
@@ -81,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{role}', [RoleController::class, 'update'])->name('update');
             Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
             Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
+            Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
         });
     });
 

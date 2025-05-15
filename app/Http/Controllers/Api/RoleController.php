@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Role\StoreRoleRequest; // Store Request
 use App\Http\Requests\Role\UpdateRoleRequest; // Update Request
 use App\Http\Requests\Role\AssignPermissionsRequest; // Assign Permissions Request
+use App\Http\Resources\PermissionCollection;
 use App\Http\Resources\RoleResource;
 use App\Interfaces\RoleServiceInterface;
 use Spatie\Permission\Models\Role; // For Route Model Binding
@@ -85,7 +86,8 @@ class RoleController extends Controller
      */
     public function assignPermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
     {
-        $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $request->validated('permissions')); // Service handles authorization and validation
+        $permissionIds  = $request->validated('permissionIds');
+        $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $permissionIds); // Service handles authorization and validation
         return (new RoleResource($updatedRole))->response();
     }
 
@@ -104,4 +106,22 @@ class RoleController extends Controller
         return $usersResponse;
     }
 
+    public function getNotRolePermissions(int $roleId): JsonResponse
+    {
+        $permissions = $this->roleService->getNotRolePermissions($roleId);
+        return $permissions;
+    }
+
+    public function revokePermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
+    {
+        $this->roleService->revokePermissionsFromRole($role->id, $request->validated('permissionIds'));
+        return (new RoleResource($role->fresh(['permissions'])))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
+    }
+
+    public function isUnique(string $roleName): bool
+    {
+        return $this->roleService->isUniqueRoleName($roleName);
+    }
 }

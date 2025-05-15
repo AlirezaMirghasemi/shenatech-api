@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Http\Resources\PermissionCollection;
 use App\Http\Resources\PermissionResource;
 use App\Http\Resources\UserResource;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\PermissionRepositoryInterface; // Inject PermissionRepository
 use App\Interfaces\RoleServiceInterface;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -115,7 +116,7 @@ class RoleService implements RoleServiceInterface
         return $this->roleRepository->deleteRole($role);
     }
 
-    public function assignPermissionsToRole(int $roleId, array $permissions): Role
+    public function assignPermissionsToRole(int $roleId, array $permissionIds): Role
     {
         $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
 
@@ -125,18 +126,17 @@ class RoleService implements RoleServiceInterface
         }
 
         // Validate that permissions exist
-        $validPermissions = Permission::whereIn('name', $permissions)->pluck('name')->toArray();
-        if (count($validPermissions) !== count($permissions)) {
-            $invalidPermissions = array_diff($permissions, $validPermissions);
+        $validPermissions = Permission::whereIn('id', $permissionIds)->pluck('id')->toArray();
+        if (count($validPermissions) !== count($permissionIds)) {
+            $invalidPermissions = array_diff($permissionIds, $validPermissions);
             throw ValidationException::withMessages([
                 'permissions' => ['Invalid permissions provided: ' . implode(', ', $invalidPermissions)],
             ]);
         }
 
-
         // Use syncPermissions to assign the exact permissions provided, removing any others
-        $role->syncPermissions($validPermissions);
-
+        $role->givePermissionTo($validPermissions);
+        $role->touch();
         return $role->load('permissions'); // Load permissions for response
     }
     public function getRolePermissions(Role $role, int $perPage = 10): JsonResponse
@@ -155,5 +155,46 @@ class RoleService implements RoleServiceInterface
         }
         $users = $role->users()->paginate($perPage);
         return UserResource::collection($users)->response();
+    }
+    public function getNotRolePermissions(int $roleId): JsonResponse
+    {
+        $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
+        // Authorization Check
+        if (Gate::denies('view roles') || Gate::denies('view permissions')) {
+            throw new AuthorizationException('You do not have permission to view role or permissions.');
+        }
+
+        $permissions = Permission::whereNotIn('id', $role->permissions()->pluck('id'))->get();
+        return PermissionResource::collection($permissions)->response();
+    }
+    public function revokePermissionsFromRole(int $roleId, array $permissions): Role
+    {
+        $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
+        // Authorization Check
+        if (Gate::denies('manage roles')) {
+            throw new AuthorizationException('You do not have permission to revoke permissions from roles.');
+        }
+        // Validate that permissions exist
+        $validPermissions = Permission::whereIn('id', $permissions)->pluck('id')->toArray();
+
+
+        if (count($validPermissions) !== count($permissions)) {
+            $invalidPermissions = array_diff($permissions, $validPermissions);
+            throw ValidationException::withMessages([
+                'permissions' => ['Invalid permissions provided: ' . implode(', ', $invalidPermissions)],
+            ]);
+        }
+        // Use revokePermission to remove the exact permissions provided
+
+        foreach ($validPermissions as $permission) {
+            $role->revokePermissionTo($permission); // هر بار یک شناسه
+        }
+        $role->touch();
+        return $role->load('permissions'); // Load permissions for response
+    }
+    public function isUniqueRoleName(string $roleName): bool
+    {
+        $roleName = trim($roleName);
+        return $this->roleRepository->isUniqueRoleName($roleName);
     }
 }
