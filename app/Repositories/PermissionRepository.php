@@ -8,9 +8,9 @@ use Illuminate\Support\Collection;
 
 class PermissionRepository implements PermissionRepositoryInterface
 {
-    public function getAllPermissions(): Collection
+    public function getAllPermissions()
     {
-        return Permission::all();
+        return Permission::query();
     }
 
     // Permissions are usually seeded and not managed via typical CRUD API endpoints.

@@ -17,14 +17,14 @@ class PermissionService implements PermissionServiceInterface
         $this->permissionRepository = $permissionRepository;
     }
 
-    public function getAllPermissions(): SupportCollection
+    public function getAllPermissions(int $perPage = 10)
     {
         // Authorization Check
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permissions.');
         }
-
-        return $this->permissionRepository->getAllPermissions();
+        $query = $this->permissionRepository->getAllPermissions();
+        return $query->paginate($perPage);
     }
 
     // As permissions are typically seeded, methods for creating, updating, or deleting

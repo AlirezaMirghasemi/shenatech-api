@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 
 interface PermissionRepositoryInterface
 {
-    public function getAllPermissions(): Collection;
+    public function getAllPermissions();
     // Permissions are usually seeded and managed via Role/Seeder, so basic CRUD might not be exposed via API
     // public function findPermissionById(int $id): ?Permission;
     // public function findPermissionByName(string $name): ?Permission;

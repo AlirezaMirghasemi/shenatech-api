@@ -87,7 +87,9 @@ class RoleService implements RoleServiceInterface
         // Validate and assign permissions if provided
         $permissions = $data['permissions'] ?? null; // Use null to differentiate between not provided and empty array
         unset($data['permissions']);
-
+        if (in_array($role->name, ['Admin'])) {
+            throw new AuthorizationException("You cannot update the {$role->name} role.");
+        }
         $this->roleRepository->updateRole($role, $data);
 
         // Handle permission assignment separately if permissions were provided in the update data
@@ -108,11 +110,13 @@ class RoleService implements RoleServiceInterface
 
         $role = $this->findRoleById($id); // Handles NotFoundException
 
-        // Prevent deleting crucial roles like 'Admin' or 'Viewer' (Optional business logic)
-        if (in_array($role->name, ['Admin', 'Viewer'])) {
+        // Prevent deleting crucial roles like 'Admin' or 'User' (Optional business logic)
+        if (in_array($role->name, ['Admin', 'User'])) {
             throw new AuthorizationException("You cannot delete the {$role->name} role.");
         }
-
+        if ($role->permissions()->count() !== 0) {
+            throw new AuthorizationException("You cannot delete a role that has assigned permissions.");
+        }
         return $this->roleRepository->deleteRole($role);
     }
 
