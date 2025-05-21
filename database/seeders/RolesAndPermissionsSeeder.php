@@ -30,6 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'view roles']);
         Permission::firstOrCreate(['name' => 'manage roles']); // CRUD roles & assign permissions
         Permission::firstOrCreate(['name' => 'view permissions']);
+        Permission::firstOrCreate(['name' => 'manage permissions']);
 
         // Article Permissions
         Permission::firstOrCreate(['name' => 'view articles']); // View published/approved articles
