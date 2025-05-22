@@ -45,9 +45,10 @@ class PermissionController extends Controller
     {
         return $this->permissionService->isUniquePermissionName($permissionName);
     }
-    public function destroy(Permission $permission): JsonResponse
+    public function destroy(Request $request): JsonResponse
     {
-        $this->permissionService->deletePermission($permission); // Service handles authorization
+        $permissions = $request->input('permissionIds', []);
+        $this->permissionService->deletePermissions($permissions); // Service handles authorization
         return response()->json(null, Response::HTTP_NO_CONTENT); // 204
     }
 }

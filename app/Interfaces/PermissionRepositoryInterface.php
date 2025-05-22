@@ -9,7 +9,7 @@ interface PermissionRepositoryInterface
     public function isUniquePermissionName(string $permissionName): bool;
     public function createPermission(array $data): Permission;
     public function findPermissionById(int $id): ?Permission;
-    public function deletePermission(Permission $permission): bool;
+    public function deletePermissions(array $permissions): bool;
 
     // Permissions are usually seeded and managed via Role/Seeder, so basic CRUD might not be exposed via API
     // public function findPermissionById(int $id): ?Permission;

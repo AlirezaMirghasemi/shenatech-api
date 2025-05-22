@@ -86,17 +86,17 @@ class PermissionService implements PermissionServiceInterface
         $permissionName = trim($permissionName);
         return $this->permissionRepository->isUniquePermissionName($permissionName);
     }
-    public function deletePermission(Permission $permission): bool{
+    public function deletePermissions(array $permissions): bool{
         if (Gate::denies('manage permissions')) {
             throw new AuthorizationException('You do not have permission to delete permissions.');
         }
-        $roles=Role::whereHas('permissions', function ($query) use ($permission) {
-            $query->where('permissions.id', $permission->id);
+        $roles=Role::whereHas('permissions', function ($query) use ($permissions) {
+            $query->whereIn('permissions.id', $permissions);
         })->get();
 
         if ($roles->count() > 0) {
             throw new AuthorizationException("You cannot delete a permission that has assigned roles.");
         }
-        return $this->permissionRepository->deletePermission($permission);
+        return $this->permissionRepository->deletePermissions($permissions);
     }
 }

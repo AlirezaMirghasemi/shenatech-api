@@ -10,7 +10,7 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/permission-name-is-unique/{permissionName}', [PermissionController::class, 'isUnique'])->name('isUnique');
         Route::middleware('permission:manage permissions')->group(function () {
             Route::post('/', [PermissionController::class, 'store'])->name('store');
-            Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
+            Route::delete('/', [PermissionController::class, 'destroy'])->name('destroy');
         });
     });
 });

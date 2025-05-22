@@ -12,7 +12,7 @@ interface PermissionServiceInterface
     public function createPermission(array $data): Permission;
     public function assignRolesToPermission(int $permissionId, array $roleIds): Permission;
     public function isUniquePermissionName(string $permissionName): bool;
-    public function deletePermission(Permission $permission): bool;
+    public function deletePermissions(array $permissions): bool;
     // Methods for managing permissions directly via API could be added here if needed,
     // but it's generally safer to manage them via roles or seeders.
 }

@@ -34,8 +34,8 @@ class PermissionRepository implements PermissionRepositoryInterface
         return Permission::where('name', $permissionName)->doesntExist();
     }
 
-    public function deletePermission(Permission $permission): bool
+    public function deletePermissions(array $permissions): bool
     {
-        return $permission->delete();
+        return Permission::destroy($permissions);
     }
 }
