@@ -10,6 +10,7 @@ interface PermissionRepositoryInterface
     public function createPermission(array $data): Permission;
     public function findPermissionById(int $id): ?Permission;
     public function deletePermissions(array $permissions): bool;
+    public function revokeRolesFromPermission(Permission $permission, array $roleIds): bool;
 
     // Permissions are usually seeded and managed via Role/Seeder, so basic CRUD might not be exposed via API
     // public function findPermissionById(int $id): ?Permission;

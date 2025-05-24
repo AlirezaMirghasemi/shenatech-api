@@ -119,7 +119,6 @@ class RoleController extends Controller
             ->response()
             ->setStatusCode(Response::HTTP_OK);
     }
-
     public function isUnique(string $roleName): bool
     {
         return $this->roleService->isUniqueRoleName($roleName);

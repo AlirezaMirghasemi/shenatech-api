@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Permission\RevokePermissionRolesRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Interfaces\PermissionServiceInterface; // Inject Service Interface
 use App\Http\Resources\PermissionResource; // Permission Resource
@@ -50,5 +51,18 @@ class PermissionController extends Controller
         $permissions = $request->input('permissionIds', []);
         $this->permissionService->deletePermissions($permissions); // Service handles authorization
         return response()->json(null, Response::HTTP_NO_CONTENT); // 204
+    }
+    public function getPermissionRoles(Permission $permission, Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+        $rolesResponse = $this->permissionService->getPermissionRoles($permission, $perPage);
+        return $rolesResponse;
+    }
+    public function revokeRoles(RevokePermissionRolesRequest $request, Permission $permission): JsonResponse
+    {
+        $this->permissionService->revokeRolesFromPermission($permission->id, $request->validated('roleIds'));
+        return (new PermissionResource($permission->fresh(['roles'])))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
     }
 }

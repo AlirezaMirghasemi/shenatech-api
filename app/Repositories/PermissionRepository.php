@@ -38,4 +38,12 @@ class PermissionRepository implements PermissionRepositoryInterface
     {
         return Permission::destroy($permissions);
     }
+    public function revokeRolesFromPermission(Permission $permission, array $roleIds): bool
+    {
+        foreach ($roleIds as $roleId) {
+            $permission->removeRole($roleId);
+        }
+        $permission->touch();
+        return true;
+    }
 }

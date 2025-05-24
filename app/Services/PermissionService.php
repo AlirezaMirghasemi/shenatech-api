@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Resources\RoleResource;
 use App\Interfaces\PermissionRepositoryInterface;
 use App\Interfaces\PermissionServiceInterface;
 use Illuminate\Support\Collection as SupportCollection;
@@ -36,7 +37,8 @@ class PermissionService implements PermissionServiceInterface
     // If needed, you would add them here with appropriate authorization.
 
 
-    public function findPermissionById(int $id): Permission{
+    public function findPermissionById(int $id): Permission
+    {
         // Authorization Check (view single permission also requires 'view permissions')
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permissions.');
@@ -48,7 +50,8 @@ class PermissionService implements PermissionServiceInterface
         }
         return $permission;
     }
-    public function createPermission(array $data): Permission{
+    public function createPermission(array $data): Permission
+    {
         if (Gate::denies('manage permissions')) {
             throw new AuthorizationException('You do not have permission to create permissions.');
         }
@@ -60,7 +63,8 @@ class PermissionService implements PermissionServiceInterface
 
         return $permission->load('permissions'); // Load roles for response
     }
-    public function assignRolesToPermission(int $permissionId, array $roleIds): Permission{
+    public function assignRolesToPermission(int $permissionId, array $roleIds): Permission
+    {
         $permission = $this->findPermissionById($permissionId); // Handles NotFoundException and initial Auth
 
         // Authorization Check
@@ -82,15 +86,17 @@ class PermissionService implements PermissionServiceInterface
         $permission->touch();
         return $permission->load('roles'); // Load roles for response
     }
-    public function isUniquePermissionName(string $permissionName): bool{
+    public function isUniquePermissionName(string $permissionName): bool
+    {
         $permissionName = trim($permissionName);
         return $this->permissionRepository->isUniquePermissionName($permissionName);
     }
-    public function deletePermissions(array $permissions): bool{
+    public function deletePermissions(array $permissions): bool
+    {
         if (Gate::denies('manage permissions')) {
             throw new AuthorizationException('You do not have permission to delete permissions.');
         }
-        $roles=Role::whereHas('permissions', function ($query) use ($permissions) {
+        $roles = Role::whereHas('permissions', function ($query) use ($permissions) {
             $query->whereIn('permissions.id', $permissions);
         })->get();
 
@@ -98,5 +104,36 @@ class PermissionService implements PermissionServiceInterface
             throw new AuthorizationException("You cannot delete a permission that has assigned roles.");
         }
         return $this->permissionRepository->deletePermissions($permissions);
+    }
+    public function getPermissionRoles(Permission $permission, int $perPage = 10)
+    {
+        // Authorization Check
+        if (Gate::denies('view permissions')) {
+            throw new AuthorizationException('You do not have permission to view permission roles.');
+        }
+        $roles = $permission->roles()->paginate($perPage);
+        return RoleResource::collection($roles)->response();
+    }
+    public function revokeRolesFromPermission(int $permissionId, array $roleIds)
+    {
+        $permission = $this->findPermissionById($permissionId); // Handles NotFoundException and initial Auth
+
+        // Authorization Check
+        if (Gate::denies('manage permissions')) {
+            throw new AuthorizationException('You do not have permission to revoke roles from permission.');
+        }
+
+        // Validate that roles exist
+        $validRoles = Role::whereIn('id', $roleIds)->pluck('id')->toArray();
+        if (count($validRoles) !== count($roleIds)) {
+            $invalidRoles = array_diff($roleIds, $validRoles);
+            throw ValidationException::withMessages([
+                'roles' => ['Invalid roles provided: ' . implode(', ', $invalidRoles)],
+            ]);
+        }
+
+
+        return $this->permissionRepository->revokeRolesFromPermission($permission, $validRoles);
+
     }
 }
