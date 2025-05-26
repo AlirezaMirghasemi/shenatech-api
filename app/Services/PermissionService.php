@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Http\Resources\RoleResource;
+use App\Http\Resources\UserResource;
 use App\Interfaces\PermissionRepositoryInterface;
 use App\Interfaces\PermissionServiceInterface;
+use App\Models\User;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate; // For authorization
@@ -12,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Support\Facades\DB;
+
 
 class PermissionService implements PermissionServiceInterface
 {
@@ -114,6 +118,22 @@ class PermissionService implements PermissionServiceInterface
         $roles = $permission->roles()->paginate($perPage);
         return RoleResource::collection($roles)->response();
     }
+    public function getPermissionUsers(Permission $permission, int $perPage = 10)
+    {
+        if (Gate::denies('view permissions')) {
+            throw new AuthorizationException('You do not have permission to view permission users.');
+        }
+
+        // Get all roles for the permission, then get users for those roles
+        $roleIds = $permission->roles()->pluck('roles.id');
+        $usersQuery = User::whereHas('roles', function ($query) use ($roleIds) {
+            $query->whereIn('roles.id', $roleIds);
+        })->distinct();
+
+        $users = $usersQuery->paginate($perPage);
+
+        return UserResource::collection($users)->response();
+    }
     public function revokeRolesFromPermission(int $permissionId, array $roleIds)
     {
         $permission = $this->findPermissionById($permissionId); // Handles NotFoundException and initial Auth
@@ -134,6 +154,5 @@ class PermissionService implements PermissionServiceInterface
 
 
         return $this->permissionRepository->revokeRolesFromPermission($permission, $validRoles);
-
     }
 }

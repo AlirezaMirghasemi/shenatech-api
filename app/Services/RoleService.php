@@ -201,4 +201,5 @@ class RoleService implements RoleServiceInterface
         $roleName = trim($roleName);
         return $this->roleRepository->isUniqueRoleName($roleName);
     }
+
 }

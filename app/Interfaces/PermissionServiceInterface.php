@@ -14,6 +14,8 @@ interface PermissionServiceInterface
     public function isUniquePermissionName(string $permissionName): bool;
     public function deletePermissions(array $permissions): bool;
     public function getPermissionRoles(Permission $permission, int $perPage);
+    public function getPermissionUsers(Permission $permission, int $perPage);
+
     public function revokeRolesFromPermission(int $permissionId, array $roleIds);
     // Methods for managing permissions directly via API could be added here if needed,
     // but it's generally safer to manage them via roles or seeders.

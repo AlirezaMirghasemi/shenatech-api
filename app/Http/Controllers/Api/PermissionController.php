@@ -54,9 +54,15 @@ class PermissionController extends Controller
     }
     public function getPermissionRoles(Permission $permission, Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+        $perPage = $request->input('per_page', 10);
         $rolesResponse = $this->permissionService->getPermissionRoles($permission, $perPage);
         return $rolesResponse;
+    }
+    public function getPermissionUsers(Permission $permission, Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 10);
+        $users = $this->permissionService->getPermissionUsers($permission, $perPage);
+        return $users;
     }
     public function revokeRoles(RevokePermissionRolesRequest $request, Permission $permission): JsonResponse
     {

@@ -9,6 +9,7 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/{permission}', [PermissionController::class, 'show'])->name('show');
         Route::get('/permission-name-is-unique/{permissionName}', [PermissionController::class, 'isUnique'])->name('isUnique');
         Route::get('/{permission}/roles', [PermissionController::class, 'getPermissionRoles'])->name('getPermissionRoles');
+        Route::get('/{permission}/users',[PermissionController::class,'getPermissionUsers'])->name('getPermissionUsers');
         Route::middleware('permission:manage permissions')->group(function () {
             Route::post('/', [PermissionController::class, 'store'])->name('store');
             Route::delete('/', [PermissionController::class, 'destroy'])->name('destroy');
