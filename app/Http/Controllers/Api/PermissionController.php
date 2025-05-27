@@ -22,22 +22,16 @@ class PermissionController extends Controller
         // $this->middleware('permission:view permissions')->only(['index']);
     }
 
-    /**
-     * Display a listing of the resource (Permissions are usually listed, not CRUD via API).
-     */
+
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
-        $permissions = $this->permissionService->getAllPermissions($perPage); // Service handles authorization
+        $perPage = $request->input('per_page', 10);
+        $permissions = $this->permissionService->getAllPermissions($perPage);
         return PermissionResource::collection($permissions)->response();
     }
-
-    // Typically, methods for creating, showing, updating, or deleting permissions
-    // are not needed in an API controller as permissions are managed via seeding.
-
     public function store(StorePermissionRequest $request): JsonResponse
     {
-        $permission = $this->permissionService->createPermission($request->validated()); // Service handles authorization and role assignment
+        $permission = $this->permissionService->createPermission($request->validated());
         return (new PermissionResource($permission))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED); // 201

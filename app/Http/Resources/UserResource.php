@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Resources;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 // Import other resources if needed
@@ -21,10 +23,12 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
-            // 'full_name' => $this->first_name . ' ' . $this->last_name, // Example computed property
+            'full_name' => $this->first_name . ' ' . $this->last_name,
             'bio' => $this->bio,
+            'status' => $this->status,
             'gender' => $this->gender, // Already casted to Enum, will be serialized to its value
             'mobile' => $this->mobile,
+            'mobile_verified_at' => $this->mobile_verified_at?->toIso8601String(),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(), // Format date
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserStatus;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -144,6 +145,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'last_name' => 'Mirghasemi',
                 'password' => bcrypt('2129638Dm@14'),
                 'email_verified_at' => now(),
+                'status'=>UserStatus::ACTIVE
             ]
         );
         $adminUser->assignRole($adminRole);

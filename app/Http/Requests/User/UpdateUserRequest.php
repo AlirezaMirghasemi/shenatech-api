@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use App\Enums\UserGender;
+use App\Enums\UserStatus;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rule; // For unique rule ignoring current user
 
@@ -28,6 +29,7 @@ class UpdateUserRequest extends FormRequest
             'username' => ['sometimes', 'required', 'string', 'max:50', Rule::unique('users')->ignore($userId)],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:100', Rule::unique('users')->ignore($userId)],
             // Password is optional on update, but if present, requires confirmation and strength
+            'status' => ['nullable', new Enum(UserStatus::class)],
             'password' => ['nullable', 'string', 'confirmed', Password::defaults()],
             'first_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],

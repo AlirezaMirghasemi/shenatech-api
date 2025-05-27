@@ -28,7 +28,6 @@ class PermissionService implements PermissionServiceInterface
 
     public function getAllPermissions(int $perPage = 10)
     {
-        // Authorization Check
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permissions.');
         }
@@ -36,14 +35,10 @@ class PermissionService implements PermissionServiceInterface
         return $query->paginate($perPage);
     }
 
-    // As permissions are typically seeded, methods for creating, updating, or deleting
-    // are usually not exposed via the API through a service like this.
-    // If needed, you would add them here with appropriate authorization.
 
 
     public function findPermissionById(int $id): Permission
     {
-        // Authorization Check (view single permission also requires 'view permissions')
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permissions.');
         }
@@ -62,21 +57,20 @@ class PermissionService implements PermissionServiceInterface
         $permission = $this->permissionRepository->createPermission($data);
 
         if (!empty($permissions)) {
-            $this->assignRolesToPermission($permission->id, $permissions); // Use the service method
+            $this->assignRolesToPermission($permission->id, $permissions);
         }
 
-        return $permission->load('permissions'); // Load roles for response
+        return $permission->load('permissions');
     }
     public function assignRolesToPermission(int $permissionId, array $roleIds): Permission
     {
-        $permission = $this->findPermissionById($permissionId); // Handles NotFoundException and initial Auth
+        $permission = $this->findPermissionById($permissionId);
 
         // Authorization Check
-        if (Gate::denies('manage permissions')) { // Or a more specific permission like 'assign permissions to roles'
+        if (Gate::denies('manage permissions')) {
             throw new AuthorizationException('You do not have permission to assign roles to permission.');
         }
 
-        // Validate that roles exist
         $validRoles = Role::whereIn('id', $roleIds)->pluck('id')->toArray();
         if (count($validRoles) !== count($roleIds)) {
             $invalidRoles = array_diff($roleIds, $validRoles);
@@ -85,10 +79,9 @@ class PermissionService implements PermissionServiceInterface
             ]);
         }
 
-        // Use syncRoles to assign the exact roles provided, removing any others
         $permission->giveRoleTo($validRoles);
         $permission->touch();
-        return $permission->load('roles'); // Load roles for response
+        return $permission->load('roles');
     }
     public function isUniquePermissionName(string $permissionName): bool
     {
@@ -111,7 +104,6 @@ class PermissionService implements PermissionServiceInterface
     }
     public function getPermissionRoles(Permission $permission, int $perPage = 10)
     {
-        // Authorization Check
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permission roles.');
         }
@@ -136,14 +128,10 @@ class PermissionService implements PermissionServiceInterface
     }
     public function revokeRolesFromPermission(int $permissionId, array $roleIds)
     {
-        $permission = $this->findPermissionById($permissionId); // Handles NotFoundException and initial Auth
-
-        // Authorization Check
+        $permission = $this->findPermissionById($permissionId);
         if (Gate::denies('manage permissions')) {
             throw new AuthorizationException('You do not have permission to revoke roles from permission.');
         }
-
-        // Validate that roles exist
         $validRoles = Role::whereIn('id', $roleIds)->pluck('id')->toArray();
         if (count($validRoles) !== count($roleIds)) {
             $invalidRoles = array_diff($roleIds, $validRoles);
@@ -151,8 +139,6 @@ class PermissionService implements PermissionServiceInterface
                 'roles' => ['Invalid roles provided: ' . implode(', ', $invalidRoles)],
             ]);
         }
-
-
         return $this->permissionRepository->revokeRolesFromPermission($permission, $validRoles);
     }
 }

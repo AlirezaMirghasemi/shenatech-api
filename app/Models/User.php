@@ -18,12 +18,14 @@ class User extends Authenticatable
         'email',
         'first_name',
         'last_name',
+        'status',
         'password',
         'bio',
         'gender',
         'image_id',
         'mobile',
         'email_verified_at',
+        'mobile_verified_at',
     ];
 
     protected $hidden = [
@@ -33,8 +35,10 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'mobile_verified_at' => 'datetime',
         'password' => 'hashed',
         'gender' => \App\Enums\UserGender::class,
+        'status' => \App\Enums\UserStatus::class,
     ];
 
     // --- Relationships ---
