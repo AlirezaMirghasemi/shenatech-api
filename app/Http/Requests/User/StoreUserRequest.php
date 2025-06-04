@@ -20,12 +20,14 @@ class StoreUserRequest extends FormRequest
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:100', 'unique:users,email'],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
+            'password_confirmation' => ['required', 'string'],
             'status' => ['required', new Enum(UserStatus::class)],
             'first_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'mobile' => ['required', 'string', 'max:20', 'unique:users,mobile'],
             'gender' => ['nullable', new Enum(UserGender::class)],
             'bio' => ['nullable', 'string'],
+            'profile_image' => ['nullable', 'image', 'max:2048'],
             'roles' => ['nullable', 'array'], // Validate roles array
             'roles.*' => ['string', 'exists:roles,name'], // Ensure each role exists
         ];

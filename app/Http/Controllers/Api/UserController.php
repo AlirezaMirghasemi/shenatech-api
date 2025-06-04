@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ImageType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Interfaces\UserServiceInterface; // Inject Service Interface
@@ -9,6 +11,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\UploadProfileImageRequest;
 use App\Http\Requests\User\AssignRolesRequest;
+use App\Models\Image;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Needed for type hinting if not using specific requests sometimes
 use Symfony\Component\HttpFoundation\Response;
@@ -37,7 +40,16 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $user = $this->userService->createUser($request->validated());
+        $validated = $request->validated();
+        unset($validated['password_confirmation']);
+
+        $user = $this->userService->createUser($validated);
+
+        if ($request->hasFile('profile_image')) {
+            $this->userService->uploadProfileImage($user->id, $request->file('profile_image'));
+
+            $user->refresh();
+        }
         return (new UserResource($user))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED); // 201
@@ -93,5 +105,12 @@ class UserController extends Controller
     {
         $updatedUser = $this->userService->assignRolesToUser($user->id, $request->validated('roles'));
         return (new UserResource($updatedUser))->response();
+    }
+    public function isUnique(Request $request): bool
+    {
+        $fieldName = $request->query('fieldName');
+        $fieldValue = $request->query('fieldValue');
+        $isUnique = $this->userService->isUnique($fieldName, $fieldValue);
+        return $isUnique;
     }
 }

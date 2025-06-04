@@ -13,4 +13,6 @@ interface UserServiceInterface
     public function deleteUser(int $id): bool;
     public function uploadProfileImage(int $userId, UploadedFile $image): User;
     public function assignRolesToUser(int $userId, array $roles): User;
+        public function isUnique(string $fieldName, string $fieldValue): bool;
+
 }

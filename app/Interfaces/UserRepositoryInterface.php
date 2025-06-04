@@ -13,4 +13,5 @@ interface UserRepositoryInterface
     public function updateUser(User $user, array $data): bool;
     public function deleteUser(User $user): bool;
     public function updateUserProfileImage(User $user, UploadedFile $image): ?string; // Returns image path or null
+    public function isUnique(string $fieldName, string $fieldValue): bool;
 }

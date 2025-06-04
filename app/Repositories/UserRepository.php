@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Interfaces\UserRepositoryInterface;
@@ -68,35 +69,40 @@ class UserRepository implements UserRepositoryInterface
         $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
 
         // 3. Store the file
-        $path = $image->storeAs($directory, $filename, $disk);
+        try {
+            $path = $image->storeAs($directory, $filename, $disk);
 
-        if ($path) {
-            // 4. Delete the old image file and model record if it exists
-            if ($user->profileImage) {
-                Storage::disk($user->profileImage->disk)->delete($user->profileImage->path);
-                // Use forceDelete() if Image model also uses SoftDeletes and you want permanent deletion
-                $user->profileImage()->dissociate(); // Remove the relationship first
-                $user->save(); // Save the user model to clear image_id
-                $user->profileImage()->delete(); // Delete the old image model record
-            }
 
-            // 5. Create a new record in the images table
-            $newImage = Image::create([
-                'title' => $image->getClientOriginalName(),
-                'type' => ImageType::PROFILE,
-                'path' => $path,
-                'disk' => $disk,
-                'mime_type' => $image->getMimeType(),
-                'size' => $image->getSize(),
-            ]);
-
-            // 6. Update the user's image_id
-            $user->image_id = $newImage->id;
-            $user->save();
-
-            return $path; // Return the path of the newly stored image
+        } catch (\Exception $e) {
+            \Log::error("File storage failed: " . $e->getMessage());
+            return null;
         }
 
-        return null; // Return null on failure
+
+        if ($user->profileImage) {
+            Storage::disk($user->profileImage->disk)->delete($user->profileImage->path);
+            $user->profileImage()->delete();
+        }
+
+        // 5. Create a new record in the images table
+        $newImage = Image::create([
+            'title' => $filename,
+            'type' => ImageType::PROFILE,
+            'path' => $path,
+            'disk' => $disk,
+            'mime_type' => $image->getMimeType(),
+            'size' => $image->getSize(),
+        ]);
+
+        // 6. Update the user's image_id
+        $user->image_id = $newImage->id;
+        $user->save();
+        return $path; // Return the path of the newly stored image
+
+
+    }
+    public function isUnique(string $fieldName, string $fieldValue): bool
+    {
+        return !User::where($fieldName, $fieldValue)->exists();
     }
 }

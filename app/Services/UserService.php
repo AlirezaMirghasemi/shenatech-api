@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Interfaces\UserRepositoryInterface;
@@ -54,20 +55,19 @@ class UserService implements UserServiceInterface
         if (Gate::denies('manage users')) {
             throw new AuthorizationException('You do not have permission to create users.');
         }
+        $userData['password'] = bcrypt($userData['password']);
+
         // Note: Password hashing is handled in Repository or RegisterRequest/AuthService
         $user = $this->userRepository->createUser($userData);
 
         // Assign roles if provided and user has permission
         if (isset($userData['roles']) && auth()->user()->can('assign roles')) {
             $this->assignRolesToUser($user->id, $userData['roles']);
-        } elseif (isset($userData['roles'])) {
-            Log::warning('User tried to assign roles during creation without permission.', ['creator_id' => auth()->id(), 'target_user_data' => $userData]);
         } else {
-            // Assign default role if no roles provided
-            $user->assignRole('Viewer'); // Ensure 'Viewer' role exists
+            $user->assignRole('Viewer');
         }
 
-        return $user->load('roles', 'profileImage'); // Load relations for response
+        return $user->load('roles', 'profileImage');
     }
 
     public function updateUser(int $id, array $userData): User
@@ -157,5 +157,9 @@ class UserService implements UserServiceInterface
         $user->syncRoles($validRoles);
 
         return $user->load('roles', 'permissions'); // Load relations for response
+    }
+    public function isUnique(string $fieldName, string $fieldValue): bool
+    {
+        return $this->userRepository->isUnique($fieldName, $fieldValue);
     }
 }

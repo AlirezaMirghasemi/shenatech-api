@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -82,5 +83,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
-
+public function getProfileImageUrlAttribute()
+{
+    return $this->profile_image
+        ? Storage::disk('public')->url($this->profile_image)
+        : null;
+}
 }
