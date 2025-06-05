@@ -8,7 +8,7 @@ Route::middleware('auth:web')->group(function () {
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->middleware('permission:view users')->name('index');
         Route::get('field-is-unique', [UserController::class, 'isUnique'])->middleware('permission:view users')->name('isUnique');
-
+        Route::put('/{user}/status', [UserController::class,'updateStatus'])->middleware('permission:manage users')->name('updateStatus');
         Route::get('/{user}', [UserController::class, 'show'])->middleware('permission:view users')->name('show');
         Route::post('/', [UserController::class, 'store'])->middleware('permission:manage users')->name('store');
         Route::put('/{user}', [UserController::class, 'update'])->middleware('permission:manage users|edit own profile')->name('update');

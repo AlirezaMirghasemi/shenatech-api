@@ -113,4 +113,10 @@ class UserController extends Controller
         $isUnique = $this->userService->isUnique($fieldName, $fieldValue);
         return $isUnique;
     }
+    public function updateStatus(Request $request, User $user): JsonResponse
+    {
+        $status = $request->input('status');
+        $updatedUser = $this->userService->updateUser($user->id, ['status' => $status]);
+        return (new UserResource($updatedUser))->response();
+    }
 }
