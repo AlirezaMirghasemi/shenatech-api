@@ -47,7 +47,6 @@ class UserController extends Controller
 
         if ($request->hasFile('profile_image')) {
             $this->userService->uploadProfileImage($user->id, $request->file('profile_image'));
-
             $user->refresh();
         }
         return (new UserResource($user))
@@ -73,8 +72,14 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $updatedUser = $this->userService->updateUser($user->id, $request->validated());
+        $updatedUser = $this->userService->updateUser(
+            $user->id,
+            $request->validated(),
+            $request->file('profile_image') // ارسال فایل به سرویس
+        );
+
         return (new UserResource($updatedUser))->response();
+
     }
 
     /**
@@ -119,4 +124,5 @@ class UserController extends Controller
         $updatedUser = $this->userService->updateUser($user->id, ['status' => $status]);
         return (new UserResource($updatedUser))->response();
     }
+
 }

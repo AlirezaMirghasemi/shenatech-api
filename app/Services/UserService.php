@@ -70,7 +70,7 @@ class UserService implements UserServiceInterface
         return $user->load('roles', 'profileImage');
     }
 
-    public function updateUser(int $id, array $userData): User
+    public function updateUser(int $id, array $userData, ?UploadedFile $image = null): User
     {
         $user = $this->getUserById($id); // Handles NotFoundException
 
@@ -86,7 +86,9 @@ class UserService implements UserServiceInterface
             Log::warning('User tried to update roles without permission.', ['updater_id' => $currentUser->id, 'target_user_id' => $id]);
             unset($userData['roles']);
         }
-
+        if ($image) {
+            $this->uploadProfileImage($user->id, $image);
+        }
         $this->userRepository->updateUser($user, $userData);
 
         // Handle role assignment separately after user update if roles are provided and user has permission
