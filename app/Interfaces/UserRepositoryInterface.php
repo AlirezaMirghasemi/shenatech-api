@@ -3,6 +3,7 @@ namespace App\Interfaces;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Spatie\Permission\Models\Role;
 
 interface UserRepositoryInterface
 {
@@ -14,4 +15,5 @@ interface UserRepositoryInterface
     public function deleteUser(User $user): bool;
     public function updateUserProfileImage(User $user, UploadedFile $image): ?string; // Returns image path or null
     public function isUnique(string $fieldName, string $fieldValue): bool;
+    public function getUnAssignedRoleUsers(Role $role): Collection;
 }

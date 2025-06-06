@@ -43,4 +43,8 @@ class RoleRepository implements RoleRepositoryInterface
     {
         return Role::where('name', $roleName)->doesntExist();
     }
+    public function assignUsersToRole(Role $role, array $users): void
+    {
+        $role->users()->sync($users);
+    }
 }

@@ -164,4 +164,8 @@ class UserService implements UserServiceInterface
     {
         return $this->userRepository->isUnique($fieldName, $fieldValue);
     }
+    public function getUnAssignedRoleUsers(Role $role): SupportCollection
+    {
+        return $this->userRepository->getUnAssignedRoleUsers($role);
+    }
 }

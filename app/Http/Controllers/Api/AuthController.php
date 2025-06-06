@@ -50,7 +50,7 @@ class AuthController extends Controller
         $user = \Illuminate\Support\Facades\Auth::user();
         return response()->json([
             'data' => $user
-                ? new UserResource($user)
+                ? new UserResource($user->load('profileImage'))
                 : null
         ], $user ? 200 : 401);
     }

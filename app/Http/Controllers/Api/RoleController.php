@@ -123,4 +123,10 @@ class RoleController extends Controller
     {
         return $this->roleService->isUniqueRoleName($roleName);
     }
+    public function assignUsers(Request $request, Role $role): JsonResponse
+    {
+        $userIds = $request->input('userIds');
+        $updatedRole = $this->roleService->assignUsersToRole($role->id, $userIds);
+        return (new RoleResource($updatedRole))->response();
+    }
 }

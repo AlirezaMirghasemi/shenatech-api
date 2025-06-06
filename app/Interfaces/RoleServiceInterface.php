@@ -22,4 +22,5 @@ interface RoleServiceInterface
     public function getNotRolePermissions(int $roleId): JsonResponse;
     public function revokePermissionsFromRole(int $roleId, array $permissions): Role;
     public function isUniqueRoleName(string $roleName): bool;
+    public function assignUsersToRole(int $roleId, array $users): Role;
 }

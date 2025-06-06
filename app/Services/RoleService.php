@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\PermissionRepositoryInterface; // Inject PermissionRepository
 use App\Interfaces\RoleServiceInterface;
+use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -201,5 +202,22 @@ class RoleService implements RoleServiceInterface
         $roleName = trim($roleName);
         return $this->roleRepository->isUniqueRoleName($roleName);
     }
-
+    public function assignUsersToRole(int $roleId, array $users): Role
+    {
+        $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
+        // Authorization Check
+        if (Gate::denies('manage roles')) {
+            throw new AuthorizationException('You do not have permission to assign users to roles.');
+        }
+        // Validate that users exist
+        $validUsers = User::whereIn('id', $users)->pluck('id')->toArray();
+        if (count($validUsers) !== count($users)) {
+            $invalidUsers = array_diff($users, $validUsers);
+            throw ValidationException::withMessages([
+                'users' => ['Invalid users provided: ' . implode(', ', $invalidUsers)],
+            ]);
+        }
+        $this->roleRepository->assignUsersToRole($role, $validUsers);
+       return $role;
+    }
 }

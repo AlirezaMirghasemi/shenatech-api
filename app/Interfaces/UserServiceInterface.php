@@ -2,7 +2,8 @@
 namespace App\Interfaces;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection as SupportCollection; // Alias Collection
+use Illuminate\Support\Collection as SupportCollection;
+use Spatie\Permission\Models\Role;
 
 interface UserServiceInterface
 {
@@ -14,5 +15,5 @@ interface UserServiceInterface
     public function uploadProfileImage(int $userId, UploadedFile $image): User;
     public function assignRolesToUser(int $userId, array $roles): User;
     public function isUnique(string $fieldName, string $fieldValue): bool;
-
+    public function getUnAssignedRoleUsers(Role $role): SupportCollection;
 }

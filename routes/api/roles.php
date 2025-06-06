@@ -17,12 +17,14 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/{role}/not-permissions', [RoleController::class, 'getNotRolePermissions'])
             ->middleware('permission:view permissions')
             ->name('role.notPermissions');
+
         Route::middleware('permission:manage roles')->group(function () {
             Route::post('/', [RoleController::class, 'store'])->name('store');
             Route::put('/{role}', [RoleController::class, 'update'])->name('update');
             Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
             Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
             Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
+            Route::put('{role}/assign-users', [RoleController::class, 'assignUsers'])->name('assignUsers');
         });
     });
 });

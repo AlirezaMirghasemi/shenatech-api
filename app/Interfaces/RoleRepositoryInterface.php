@@ -12,4 +12,5 @@ interface RoleRepositoryInterface
     public function updateRole(Role $role, array $data): bool;
     public function deleteRole(Role $role): bool;
     public function isUniqueRoleName(string $roleName): bool;
+    public function assignUsersToRole(Role $role, array $users): void;
 }

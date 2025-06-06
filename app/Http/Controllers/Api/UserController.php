@@ -12,8 +12,10 @@ use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\UploadProfileImageRequest;
 use App\Http\Requests\User\AssignRolesRequest;
 use App\Models\Image;
+use App\Services\RoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Needed for type hinting if not using specific requests sometimes
+use Spatie\Permission\Contracts\Role;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
@@ -124,5 +126,10 @@ class UserController extends Controller
         $updatedUser = $this->userService->updateUser($user->id, ['status' => $status]);
         return (new UserResource($updatedUser))->response();
     }
-
+    public function fetchUnAssignedRoleUsers(int $roleId, RoleService $roleService): array
+    {
+        $role = $roleService->findRoleById($roleId);
+        $unassignedUsers = $this->userService->getUnAssignedRoleUsers($role);
+        return UserResource::collection($unassignedUsers)->response()->getData(true);
+    }
 }

@@ -10,7 +10,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str; // For generating file names
 use App\Models\Image; // Import Image model
-use App\Enums\ImageType; // Import ImageType enum
+use App\Enums\ImageType;
+use Spatie\Permission\Models\Role;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -105,4 +106,10 @@ class UserRepository implements UserRepositoryInterface
     {
         return !User::where($fieldName, $fieldValue)->exists();
     }
+    public function getUnAssignedRoleUsers(Role $role): Collection
+    {
+        $users = User::whereNotIn('id', $role->users()->pluck('id'))->get();
+        return $users;
+    }
+
 }
