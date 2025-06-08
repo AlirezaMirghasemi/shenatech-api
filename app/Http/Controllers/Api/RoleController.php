@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Role\AssignUsersRequest;
 use App\Http\Requests\Role\StoreRoleRequest; // Store Request
 use App\Http\Requests\Role\UpdateRoleRequest; // Update Request
 use App\Http\Requests\Role\AssignPermissionsRequest; // Assign Permissions Request
@@ -123,10 +124,18 @@ class RoleController extends Controller
     {
         return $this->roleService->isUniqueRoleName($roleName);
     }
-    public function assignUsers(Request $request, Role $role): JsonResponse
+    public function assignUsers(AssignUsersRequest $request, Role $role): JsonResponse
     {
-        $userIds = $request->input('userIds');
+        $userIds = $request->validated('userIds');
         $updatedRole = $this->roleService->assignUsersToRole($role->id, $userIds);
         return (new RoleResource($updatedRole))->response();
+    }
+     public function revokeUsers(AssignUsersRequest $request, Role $role): JsonResponse
+    {
+        $users = $request->validated('userIds');
+        $this->roleService->revokeUsersFromRole($role->id, $users);
+        return (new RoleResource($role->fresh(['users'])))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
     }
 }

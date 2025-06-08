@@ -9,17 +9,20 @@ use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function __construct(private AuthService $authService) {}
+    public function __construct(private AuthService $authService)
+    {
+    }
 
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = $this->authService->register($request->validated());
         return response()->json([
             'message' => 'User registered successfully. Please login.',
-            'data'    => new UserResource($user)
+            'data' => new UserResource($user)
         ], 201);
     }
 
@@ -54,4 +57,14 @@ class AuthController extends Controller
                 : null
         ], $user ? 200 : 401);
     }
+    public function verifySession(Request $request)
+    {
+        // استفاده از guard 'web' برای بررسی احراز هویت
+        $isAuthenticated = Auth::guard('web')->check();
+
+        return response()->json([
+            'valid' => $isAuthenticated
+        ], $isAuthenticated ? 200 : 401);
+    }
+
 }

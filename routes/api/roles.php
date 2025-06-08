@@ -25,6 +25,7 @@ Route::middleware('auth:web')->group(function () {
             Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
             Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
             Route::put('{role}/assign-users', [RoleController::class, 'assignUsers'])->name('assignUsers');
+            Route::delete('{role}/revoke-users', [RoleController::class, 'revokeUsers'])->name('revokeUsers');
         });
     });
 });

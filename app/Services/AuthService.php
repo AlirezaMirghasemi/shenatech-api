@@ -67,4 +67,5 @@ class AuthService
         $request->session()->regenerateToken();
         return true;
     }
+
 }

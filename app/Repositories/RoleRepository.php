@@ -45,6 +45,11 @@ class RoleRepository implements RoleRepositoryInterface
     }
     public function assignUsersToRole(Role $role, array $users): void
     {
-        $role->users()->sync($users);
+        $role->users()->syncWithoutDetaching($users);
+        $role->touch();
+    }
+    public function revokeUsersFromRole(Role $role, array $users): void
+    {
+        $role->users()->detach($users);
     }
 }

@@ -13,4 +13,5 @@ interface RoleRepositoryInterface
     public function deleteRole(Role $role): bool;
     public function isUniqueRoleName(string $roleName): bool;
     public function assignUsersToRole(Role $role, array $users): void;
+    public function revokeUsersFromRole(Role $role, array $users): void;
 }

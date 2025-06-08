@@ -217,7 +217,28 @@ class RoleService implements RoleServiceInterface
                 'users' => ['Invalid users provided: ' . implode(', ', $invalidUsers)],
             ]);
         }
+
         $this->roleRepository->assignUsersToRole($role, $validUsers);
-       return $role;
+        return $role;
+    }
+
+
+    public function revokeUsersFromRole(int $roleId, array $users): Role
+    {
+        $role = $this->findRoleById($roleId); // Handles NotFoundException and initial Auth
+        // Authorization Check
+        if (Gate::denies('manage roles')) {
+            throw new AuthorizationException('You do not have permission to revoke users from roles.');
+        }
+        // Validate that users exist
+        $validUsers = User::whereIn('id', $users)->pluck('id')->toArray();
+        if (count($validUsers) !== count($users)) {
+            $invalidUsers = array_diff($users, $validUsers);
+            throw ValidationException::withMessages([
+                'users' => ['Invalid users provided: ' . implode(', ', $invalidUsers)],
+            ]);
+        }
+        $this->roleRepository->revokeUsersFromRole($role, $validUsers);
+        return $role;
     }
 }

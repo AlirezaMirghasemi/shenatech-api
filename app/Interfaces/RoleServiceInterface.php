@@ -23,4 +23,5 @@ interface RoleServiceInterface
     public function revokePermissionsFromRole(int $roleId, array $permissions): Role;
     public function isUniqueRoleName(string $roleName): bool;
     public function assignUsersToRole(int $roleId, array $users): Role;
+    public function revokeUsersFromRole(int $roleId, array $users): Role;
 }
