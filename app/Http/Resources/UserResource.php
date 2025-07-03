@@ -32,6 +32,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toIso8601String(), // Format date
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
             // Conditionally load relationships if they are loaded on the model
             //'profile_image_url' => $this->whenLoaded('profileImage', fn() => $this->profileImage?->url), // Use the accessor from Image model
             'profile_image' => $this->whenLoaded('profileImage', fn() => $this->profileImage),

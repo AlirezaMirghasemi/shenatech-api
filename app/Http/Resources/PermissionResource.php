@@ -16,6 +16,7 @@ class PermissionResource extends JsonResource
             'users' => UserResource::collection($this->whenLoaded('users')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
         ];
     }
 }
