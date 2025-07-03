@@ -11,8 +11,7 @@ class Tag extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title_persian',
-        'title_english',
+        'title',
     ];
 
     // --- Relationships (Many-to-Many using custom pivot table 'reference_tags') ---

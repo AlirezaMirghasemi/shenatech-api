@@ -13,6 +13,8 @@ use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\RoleServiceInterface;
 use App\Interfaces\PermissionRepositoryInterface;
 use App\Interfaces\PermissionServiceInterface;
+use App\Interfaces\TagServiceInterface;
+use App\Interfaces\TagRepositoryInterface;
 // ... import other interfaces
 
 // Import Implementations
@@ -22,6 +24,8 @@ use App\Repositories\RoleRepository;
 use App\Services\RoleService;
 use App\Repositories\PermissionRepository;
 use App\Services\PermissionService;
+use App\Services\TagService;
+use App\Repositories\TagRepository;
 // ... import other implementations
 
 
@@ -41,8 +45,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(RoleServiceInterface::class, RoleService::class);
 
         // Bind Permission related interfaces
-        $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
-        $this->app->bind(PermissionServiceInterface::class, PermissionService::class);
+            $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
+            $this->app->bind(PermissionServiceInterface::class, PermissionService::class);
+
+        // Bind Tag related interfaces
+            $this->app->bind(TagRepositoryInterface::class, TagRepository::class);
+            $this->app->bind(TagServiceInterface::class, TagService::class);
 
         // ... bind other interfaces to their implementations
         // $this->app->bind(ArticleRepositoryInterface::class, ArticleRepository::class);
