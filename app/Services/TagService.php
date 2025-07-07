@@ -24,4 +24,18 @@ class TagService implements TagServiceInterface
 
         return $tags->paginate($perPage);
     }
+    public function createTags(array $data)
+    {
+        if (Gate::denies('manage tags')) {
+            throw new AuthorizationException('You do not have permission to manage tags.');
+        }
+        return $this->tagRepository->createTags($data);
+    }
+    public function isTagTitleUnique(string $title)
+    {
+        if (Gate::denies('manage tags')) {
+            throw new AuthorizationException('You do not have permission to manage tags.');
+        }
+        return $this->tagRepository->isTagTitleUnique($title);
+    }
 }

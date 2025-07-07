@@ -13,4 +13,16 @@ class TagRepository implements TagRepositoryInterface
     {
         return Tag::with($relations);
     }
+    public function createTags(array $data): Tag
+    {
+        return Tag::create($data);
+    }
+    public function isTagTitleUnique(string $title): bool
+    {
+        $tag = Tag::where('title', $title)->first();
+        if ($tag) {
+            return false;
+        }
+        return true;
+    }
 }
