@@ -8,6 +8,7 @@ use App\Http\Resources\TagResource;
 use App\Interfaces\TagServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class TagController extends Controller
 {
@@ -16,19 +17,21 @@ class TagController extends Controller
     {
         $this->tagService = $tagService;
     }
-public function index(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-         $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
+        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
         $tags = $this->tagService->getAllTags($perPage);
         return TagResource::collection($tags)->response();
     }
-    public function store(StoreTagRequest $request): JsonResponse{
-        $tags = $this->tagService->createTags($request->validated());
-        return (new TagResource($tags))->response()->setStatusCode(201);
-    }
-    public function isUnique(string $title): JsonResponse
+    public function store(StoreTagRequest $request): JsonResponse
     {
-        $isUnique = $this->tagService->isTagTitleUnique($title);
-        return response()->json(['is_unique' => $isUnique]);
+        $tags = $this->tagService->createTags($request->validated());
+        return ($tags)
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
+    }
+    public function isUnique(string $title): bool
+    {
+        return $this->tagService->isTagTitleUnique($title);
     }
 }

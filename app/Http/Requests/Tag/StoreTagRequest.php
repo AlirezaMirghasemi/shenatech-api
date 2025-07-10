@@ -11,7 +11,7 @@ class StoreTagRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,8 +22,8 @@ class StoreTagRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tags' => 'array',
-            'tags.*.title' => ['required', 'string', 'max:100', 'unique:tags,title']
+            'titles' => 'array',
+            'titles.*' => ['required', 'string', 'max:100', 'unique:tags,title']
         ];
     }
 }

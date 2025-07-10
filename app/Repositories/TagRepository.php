@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Http\Resources\TagResource;
 use App\Interfaces\TagRepositoryInterface;
 use App\Models\Tag;
 use Illuminate\Support\Collection;
@@ -13,9 +14,18 @@ class TagRepository implements TagRepositoryInterface
     {
         return Tag::with($relations);
     }
-    public function createTags(array $data): Tag
+    public function createTags(array $data)
     {
-        return Tag::create($data);
+        $tags = [];
+        foreach ($data['titles'] as $title) {
+            if (empty(trim($title))) {
+                continue;
+            }
+            $tags[] = Tag::create([
+                'title' => $title,
+            ]);
+        }
+        return TagResource::collection($tags);
     }
     public function isTagTitleUnique(string $title): bool
     {
