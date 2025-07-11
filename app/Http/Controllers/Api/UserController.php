@@ -88,9 +88,10 @@ class UserController extends Controller
      * Remove the specified resource from storage.
      * Using route model binding here.
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy(User $user ,Request $request): JsonResponse
     {
-        $this->userService->deleteUser($user->id);
+        $removeProfilePicture = $request->collect('removeProfilePicture');
+        $this->userService->deleteUser($user->id, $removeProfilePicture[0]);
         return response()->json(null, Response::HTTP_NO_CONTENT); // 204
     }
 

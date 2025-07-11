@@ -99,7 +99,7 @@ class UserService implements UserServiceInterface
         return $user->fresh(['roles', 'permissions', 'profileImage']); // Refresh model and load relations
     }
 
-    public function deleteUser(int $id): bool
+    public function deleteUser(int $id, bool $removeProfilePicture): bool
     {
         $user = $this->getUserById($id); // Handles NotFoundException
 
@@ -112,8 +112,12 @@ class UserService implements UserServiceInterface
         if (auth()->id() === $id) {
             throw new AuthorizationException('You cannot delete your own account.');
         }
-
-        return $this->userRepository->deleteUser($user);
+        if (!(auth()->user()->roles()->where('name', 'Admin')->exists())) {
+            if ($user->roles()->where('name', 'Admin')->exists()) {
+                throw new AuthorizationException("You cannot delete the {$user->role->name} role.");
+            }
+        }
+        return $this->userRepository->deleteUser($user, $removeProfilePicture);
     }
 
     public function uploadProfileImage(int $userId, UploadedFile $image): User

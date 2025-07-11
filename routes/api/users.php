@@ -12,7 +12,7 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/{user}', [UserController::class, 'show'])->middleware('permission:view users')->name('show');
         Route::post('/', [UserController::class, 'store'])->middleware('permission:manage users')->name('store');
         Route::post('/{user}', [UserController::class, 'update'])->middleware('permission:manage users|edit own profile')->name('update');
-        Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('permission:manage users')->name('destroy');
+        Route::post('/delete/{user}', [UserController::class, 'destroy'])->middleware('permission:manage users')->name('destroy');
         Route::post('/{user}/upload-profile-image', [UserController::class, 'uploadProfileImage'])
             ->middleware('permission:edit own profile|manage users')
             ->name('uploadImage');

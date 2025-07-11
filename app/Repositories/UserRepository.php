@@ -54,8 +54,17 @@ class UserRepository implements UserRepositoryInterface
         return $user->update($data);
     }
 
-    public function deleteUser(User $user): bool
+    public function deleteUser(User $user, bool $removeProfilePicture): bool
     {
+        if ($removeProfilePicture) {
+            if ($user->profileImage) {
+                Storage::disk($user->profileImage->disk)->delete($user->profileImage->path);
+                $user->profileImage()->delete();
+            }
+            $user->image_id = null;
+            $user->save();
+        }
+        $user->roles()->detach();
         // Soft delete is handled automatically by the model trait
         return $user->delete();
     }
@@ -102,6 +111,10 @@ class UserRepository implements UserRepositoryInterface
 
 
     }
+
+
+
+
     public function isUnique(string $fieldName, string $fieldValue): bool
     {
         return !User::where($fieldName, $fieldValue)->exists();
