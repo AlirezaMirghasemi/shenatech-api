@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ImageType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\DeleteUserRequest;
 use App\Models\User;
 use App\Interfaces\UserServiceInterface; // Inject Service Interface
 use App\Http\Resources\UserResource;
@@ -88,10 +89,10 @@ class UserController extends Controller
      * Remove the specified resource from storage.
      * Using route model binding here.
      */
-    public function destroy(User $user ,Request $request): JsonResponse
+    public function destroy(User $user ,DeleteUserRequest $request): JsonResponse
     {
-        $removeProfilePicture = $request->collect('removeProfilePicture');
-        $this->userService->deleteUser($user->id, $removeProfilePicture[0]);
+        $options = $request->validated();
+        $this->userService->deleteUser($user->id, $options);
         return response()->json(null, Response::HTTP_NO_CONTENT); // 204
     }
 

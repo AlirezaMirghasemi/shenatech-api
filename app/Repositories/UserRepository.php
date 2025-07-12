@@ -54,8 +54,10 @@ class UserRepository implements UserRepositoryInterface
         return $user->update($data);
     }
 
-    public function deleteUser(User $user, bool $removeProfilePicture): bool
+    public function deleteUser(User $user, array $options): bool
     {
+        $removeProfilePicture = $options["options"]['removeProfilePicture'];
+        $removeRole = $options["options"]['removeRoles'];
         if ($removeProfilePicture) {
             if ($user->profileImage) {
                 Storage::disk($user->profileImage->disk)->delete($user->profileImage->path);
@@ -64,7 +66,9 @@ class UserRepository implements UserRepositoryInterface
             $user->image_id = null;
             $user->save();
         }
-        $user->roles()->detach();
+        if ($removeRole) {
+            $user->roles()->detach();
+        }
         // Soft delete is handled automatically by the model trait
         return $user->delete();
     }

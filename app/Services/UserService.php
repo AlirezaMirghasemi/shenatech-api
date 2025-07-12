@@ -99,7 +99,7 @@ class UserService implements UserServiceInterface
         return $user->fresh(['roles', 'permissions', 'profileImage']); // Refresh model and load relations
     }
 
-    public function deleteUser(int $id, bool $removeProfilePicture): bool
+    public function deleteUser(int $id, array $options): bool
     {
         $user = $this->getUserById($id); // Handles NotFoundException
 
@@ -117,7 +117,7 @@ class UserService implements UserServiceInterface
                 throw new AuthorizationException("You cannot delete the {$user->role->name} role.");
             }
         }
-        return $this->userRepository->deleteUser($user, $removeProfilePicture);
+        return $this->userRepository->deleteUser($user, $options);
     }
 
     public function uploadProfileImage(int $userId, UploadedFile $image): User
