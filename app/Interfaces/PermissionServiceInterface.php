@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Permission;
 
 interface PermissionServiceInterface
 {
-    public function getAllPermissions(int $perPage);
+    public function getAllPermissions(int $perPage,string $search=null);
     public function findPermissionById(int $id): Permission;
     public function createPermission(array $data): Permission;
     public function assignRolesToPermission(int $permissionId, array $roleIds): Permission;

@@ -23,15 +23,31 @@ class UserService implements UserServiceInterface
         $this->userRepository = $userRepository;
     }
 
-    public function getAllUsers(array $filters = []): SupportCollection
+    public function getAllUsers(array $filters = [])
     {
+        $perPage = $filters["per_page"];
+        $search = $filters["search"];
         // Authorization Check
         if (Gate::denies('view users')) {
             throw new AuthorizationException('You do not have permission to view users.');
         }
-        // Eager load roles and profile image for efficiency
-        return $this->userRepository->getAllUsers($filters, ['roles', 'profileImage']);
+        if ($search != "") {
+            $users = $this->userRepository->getAllUsers($filters, ['roles', 'profileImage'])
+                ->where('username', 'like', "%$search%")
+                ->orWhere('email', 'like', "%$search%")
+                ->orWhere('first_name', 'like', "%$search%")
+                ->orWhere('last_name', 'like', "%$search%")
+                ->orWhere('mobile', 'like', "%$search%");
+        } else {
+            $users = $this->userRepository->getAllUsers($filters, ['roles', 'profileImage']);
+        }
+
+        return $users->paginate($perPage);
     }
+
+
+
+
 
     public function getUserById(int $id): ?User
     {
@@ -56,7 +72,6 @@ class UserService implements UserServiceInterface
             throw new AuthorizationException('You do not have permission to create users.');
         }
         $userData['password'] = bcrypt($userData['password']);
-
         // Note: Password hashing is handled in Repository or RegisterRequest/AuthService
         $user = $this->userRepository->createUser($userData);
 

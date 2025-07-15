@@ -11,7 +11,7 @@ class RoleRepository implements RoleRepositoryInterface
 {
     public function getAllRoles(array $relations = [])
     {
-        return Role::with($relations);
+        return Role::with($relations)->orderBy('updated_at', 'desc');
     }
 
     public function findRoleById(int $id, array $relations = []): ?Role

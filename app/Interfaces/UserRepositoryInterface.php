@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Role;
 
 interface UserRepositoryInterface
 {
-    public function getAllUsers(array $filters = [], array $relations = []): Collection;
+    public function getAllUsers(array $filters = [], array $relations = []);
     public function findUserById(int $id, array $relations = []): ?User;
     public function findUserByEmail(string $email): ?User;
     public function createUser(array $data): User;

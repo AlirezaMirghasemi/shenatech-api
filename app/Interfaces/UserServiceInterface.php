@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Role;
 
 interface UserServiceInterface
 {
-    public function getAllUsers(array $filters = []): SupportCollection;
+    public function getAllUsers(array $filters = []);
     public function getUserById(int $id): ?User;
     public function createUser(array $userData): User;
     public function updateUser(int $id, array $userData, ?UploadedFile $image = null): User;

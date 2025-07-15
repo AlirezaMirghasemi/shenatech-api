@@ -15,13 +15,17 @@ class TagService implements TagServiceInterface
         $this->tagRepository = $tagRepository;
     }
 
-    public function getAllTags(int $perPage = 10)
+    public function getAllTags(int $perPage = 10, string $search = null)
     {
         if (Gate::denies('view tags')) {
             throw new AuthorizationException('You do not have permission to view tags.');
         }
-        $tags = $this->tagRepository->getAllTags();
-
+        if($search == null){
+            $tags = $this->tagRepository->getAllTags();
+        }
+        else{
+            $tags = $this->tagRepository->getAllTags()->where('title', 'like', "%{$search}%");
+        }
         return $tags->paginate($perPage);
     }
     public function createTags(array $data)

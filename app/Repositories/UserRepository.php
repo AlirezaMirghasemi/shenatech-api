@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\UserStatus;
 use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,10 +16,13 @@ use Spatie\Permission\Models\Role;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function getAllUsers(array $filters = [], array $relations = []): Collection
+    public function getAllUsers(array $filters = [], array $relations = [])
     {
         // Add filtering logic here if needed based on $filters array
-        return User::with($relations)->get();
+        if (auth()->user()->roles()->where('name', 'Admin')->exists()) {
+            return User::withTrashed()->with($relations)->orderBy('updated_at', 'desc');
+        }
+        return User::with($relations)->orderBy('updated_at', 'desc');
     }
 
     public function findUserById(int $id, array $relations = []): ?User
@@ -70,6 +74,8 @@ class UserRepository implements UserRepositoryInterface
             $user->roles()->detach();
         }
         // Soft delete is handled automatically by the model trait
+        $user->status=UserStatus::DELETED;
+         $user->save();
         return $user->delete();
     }
 

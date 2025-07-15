@@ -26,7 +26,9 @@ class PermissionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 10);
-        $permissions = $this->permissionService->getAllPermissions($perPage);
+        $search=$request->input('search',null);
+        $permissions = $this->permissionService->getAllPermissions($perPage,$search);
+
         return PermissionResource::collection($permissions)->response();
     }
     public function store(StorePermissionRequest $request): JsonResponse

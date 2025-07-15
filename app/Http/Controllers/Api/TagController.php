@@ -19,8 +19,9 @@ class TagController extends Controller
     }
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
-        $tags = $this->tagService->getAllTags($perPage);
+        $perPage = $request->input('per_page', 10);
+        $search=$request->input('search',null);
+        $tags = $this->tagService->getAllTags($perPage,$search);
         return TagResource::collection($tags)->response();
     }
     public function store(StoreTagRequest $request): JsonResponse

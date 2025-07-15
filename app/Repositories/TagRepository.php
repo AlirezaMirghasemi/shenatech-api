@@ -12,7 +12,7 @@ class TagRepository implements TagRepositoryInterface
 {
     public function getAllTags(array $relations = [])
     {
-        return Tag::with($relations);
+        return Tag::with($relations)->orderBy('updated_at', 'desc');
     }
     public function createTags(array $data)
     {

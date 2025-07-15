@@ -26,13 +26,17 @@ class PermissionService implements PermissionServiceInterface
         $this->permissionRepository = $permissionRepository;
     }
 
-    public function getAllPermissions(int $perPage = 10)
+    public function getAllPermissions(int $perPage = 10, string $search = null)
     {
         if (Gate::denies('view permissions')) {
             throw new AuthorizationException('You do not have permission to view permissions.');
         }
-        $query = $this->permissionRepository->getAllPermissions();
-        return $query->paginate($perPage);
+        if ($search == null) {
+            return $this->permissionRepository->getAllPermissions()->paginate($perPage);
+        } else {
+            $query = $this->permissionRepository->getAllPermissions()->where('name', 'like', "%{$search}%");
+            return $query->paginate($perPage);
+        }
     }
 
 

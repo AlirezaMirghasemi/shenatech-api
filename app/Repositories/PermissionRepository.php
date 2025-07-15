@@ -12,7 +12,7 @@ class PermissionRepository implements PermissionRepositoryInterface
 {
     public function getAllPermissions()
     {
-        return Permission::query();
+        return Permission::query()->orderBy('updated_at', 'desc');
     }
 
     // Permissions are usually seeded and not managed via typical CRUD API endpoints.
