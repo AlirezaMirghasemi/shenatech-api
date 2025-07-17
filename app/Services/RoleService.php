@@ -8,8 +8,9 @@ use App\Http\Resources\UserResource;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Interfaces\PermissionRepositoryInterface; // Inject PermissionRepository
 use App\Interfaces\RoleServiceInterface;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -17,7 +18,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate; // For authorization
 use Illuminate\Validation\ValidationException; // For permission validation
-use Spatie\Permission\Models\Permission; // Import Permission model
 
 class RoleService implements RoleServiceInterface
 {

@@ -3,9 +3,9 @@
 namespace App\Interfaces;
 
 use App\Http\Resources\PermissionCollection;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Collection;
 
 

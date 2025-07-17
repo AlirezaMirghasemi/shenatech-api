@@ -41,6 +41,10 @@ class UserResource extends JsonResource
             'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
             //'role_names' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
             //'permission_names' => $this->whenLoaded('permissions', fn() => $this->permissions->pluck('name')),
+            'created_by' => $this->created_by?->username ?? null,
+            'updated_by' => $this->updated_by?->username ?? null,
+            'deleted_by' => $this->deleted_by?->username ?? null,
+            'restored_by' => $this->restored_by?->username ?? null,
         ];
     }
 }

@@ -22,6 +22,10 @@ class Video extends Model
         'content',
         'status',
         'url',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'restored_by',
     ];
 
     protected $casts = [
@@ -49,5 +53,22 @@ class Video extends Model
     {
         return $this->belongsToMany(Tag::class, 'reference_tags', 'video_id', 'tag_id')
             ->withTimestamps();
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function restorer()
+    {
+        return $this->belongsTo(User::class, 'restored_by');
+    }
+    public function destroyer()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

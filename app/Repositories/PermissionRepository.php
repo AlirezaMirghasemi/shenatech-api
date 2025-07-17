@@ -3,10 +3,9 @@
 namespace App\Repositories;
 
 use App\Interfaces\PermissionRepositoryInterface;
+use App\Models\Permission;
 use Illuminate\Auth\Access\AuthorizationException;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Collection;
-use Spatie\Permission\Models\Role;
 
 class PermissionRepository implements PermissionRepositoryInterface
 {

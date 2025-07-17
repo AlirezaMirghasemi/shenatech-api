@@ -1,9 +1,9 @@
 <?php
 namespace App\Interfaces;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
-use Spatie\Permission\Models\Role;
 
 interface UserRepositoryInterface
 {

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Enums\UserStatus;
 use App\Interfaces\UserRepositoryInterface;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str; // For generating file names
 use App\Models\Image; // Import Image model
 use App\Enums\ImageType;
-use Spatie\Permission\Models\Role;
 
 class UserRepository implements UserRepositoryInterface
 {

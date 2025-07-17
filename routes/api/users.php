@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('users')->group(function () { });
-Route::middleware('auth:web')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->middleware('permission:view users')->name('index');
         Route::get('field-is-unique', [UserController::class, 'isUnique'])->middleware('permission:view users')->name('isUnique');

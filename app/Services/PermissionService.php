@@ -6,13 +6,13 @@ use App\Http\Resources\RoleResource;
 use App\Http\Resources\UserResource;
 use App\Interfaces\PermissionRepositoryInterface;
 use App\Interfaces\PermissionServiceInterface;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate; // For authorization
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Support\Facades\DB;
 

@@ -10,7 +10,7 @@ use App\Http\Requests\Role\AssignPermissionsRequest; // Assign Permissions Reque
 use App\Http\Resources\PermissionCollection;
 use App\Http\Resources\RoleResource;
 use App\Interfaces\RoleServiceInterface;
-use Spatie\Permission\Models\Role; // For Route Model Binding
+use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request; // Needed for type hinting sometimes
 use Symfony\Component\HttpFoundation\Response; // For status codes

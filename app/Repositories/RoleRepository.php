@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Interfaces\RoleRepositoryInterface;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 

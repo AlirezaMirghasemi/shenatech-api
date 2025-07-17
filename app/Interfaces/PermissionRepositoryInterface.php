@@ -2,7 +2,7 @@
 
 namespace App\Interfaces;
 
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission;
 use Illuminate\Support\Collection;
 
 interface PermissionRepositoryInterface

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:web')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('roles')->name('roles.')->middleware('permission:view roles')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');

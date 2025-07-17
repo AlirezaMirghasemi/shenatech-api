@@ -8,4 +8,6 @@ enum ContentStatus: string
     case PENDING = 'pending';
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
+    case ARCHIVED = 'archived';
+    case DELETED = 'deleted';
 }

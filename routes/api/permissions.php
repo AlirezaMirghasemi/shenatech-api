@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\PermissionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:web')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('permissions')->name('permissions.')->middleware('permission:view permissions')->group(function () {
         Route::get('/', [PermissionController::class, 'index'])->name('index');
         Route::get('/{permission}', [PermissionController::class, 'show'])->name('show');

@@ -12,6 +12,11 @@ class Tag extends Model
 
     protected $fillable = [
         'title',
+        'status',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'restored_by',
     ];
 
     // --- Relationships (Many-to-Many using custom pivot table 'reference_tags') ---
@@ -41,5 +46,22 @@ class Tag extends Model
     {
         return $this->belongsToMany(Video::class, 'reference_tags', 'tag_id', 'video_id')
                     ->withTimestamps();
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function restorer()
+    {
+        return $this->belongsTo(User::class, 'restored_by');
+    }
+    public function destroyer()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

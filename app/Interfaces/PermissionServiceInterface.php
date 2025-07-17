@@ -2,8 +2,8 @@
 
 namespace App\Interfaces;
 
+use App\Models\Permission;
 use Illuminate\Support\Collection as SupportCollection;
-use Spatie\Permission\Models\Permission;
 
 interface PermissionServiceInterface
 {

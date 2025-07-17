@@ -2,40 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Slug extends Model
+class Role extends SpatieRole
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'title_persian',
-        'title_english',
+        'name',
+        'guard_name',
         'status',
         'created_by',
         'updated_by',
-        'deleted_by',
-        'restored_by',
+        'deleted_by'
     ];
 
-    // --- Relationships ---
-
-    public function articles(): HasMany
-    {
-        return $this->hasMany(Article::class);
-    }
-
-    public function events(): HasMany
-    {
-        return $this->hasMany(Event::class);
-    }
-
-    public function videos(): HasMany
-    {
-        return $this->hasMany(Video::class);
-    }
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

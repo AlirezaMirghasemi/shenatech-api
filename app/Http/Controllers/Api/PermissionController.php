@@ -7,9 +7,9 @@ use App\Http\Requests\Permission\RevokePermissionRolesRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Interfaces\PermissionServiceInterface; // Inject Service Interface
 use App\Http\Resources\PermissionResource; // Permission Resource
+use App\Models\Permission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Permission;
 use Symfony\Component\HttpFoundation\Response; // For status codes
 class PermissionController extends Controller
 {

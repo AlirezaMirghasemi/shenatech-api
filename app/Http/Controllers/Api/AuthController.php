@@ -50,7 +50,7 @@ class AuthController extends Controller
 
     public function user(): JsonResponse
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user =Auth::user();
         return response()->json([
             'data' => $user
                 ? new UserResource($user->load('profileImage'))
@@ -60,7 +60,7 @@ class AuthController extends Controller
     public function verifySession(Request $request)
     {
         // استفاده از guard 'web' برای بررسی احراز هویت
-        $isAuthenticated = Auth::guard('web')->check();
+        $isAuthenticated = Auth::guard('api')->check();
 
         return response()->json([
             'valid' => $isAuthenticated

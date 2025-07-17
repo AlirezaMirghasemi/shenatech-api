@@ -27,6 +27,10 @@ class User extends Authenticatable
         'mobile',
         'email_verified_at',
         'mobile_verified_at',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'restored_by',
     ];
 
     protected $hidden = [
@@ -83,10 +87,31 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
-public function getProfileImageUrlAttribute()
-{
-    return $this->profile_image
-        ? Storage::disk('public')->url($this->profile_image)
-        : null;
-}
+    public function getProfileImageUrlAttribute()
+    {
+        return $this->profile_image
+            ? Storage::disk('public')->url($this->profile_image)
+            : null;
+    }
+    public function guardName()
+    {
+        return 'api';
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function restorer()
+    {
+        return $this->belongsTo(User::class, 'restored_by');
+    }
+    public function destroyer()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
 }

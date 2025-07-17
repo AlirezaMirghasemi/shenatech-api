@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Interfaces\UserRepositoryInterface;
 use App\Interfaces\UserServiceInterface;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Gate; // For authorization
 use Illuminate\Support\Facades\Log; // For logging errors
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\Access\AuthorizationException;
-use Spatie\Permission\Models\Role; // Import Role model
 use Illuminate\Validation\ValidationException;
 
 class UserService implements UserServiceInterface

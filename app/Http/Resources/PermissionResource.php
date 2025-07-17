@@ -17,6 +17,11 @@ class PermissionResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'deleted_at' => $this->deleted_at?->toIso8601String(),
+            'status' => $this->status,
+            'created_by' => $this->created_by?->username ?? null,
+            'updated_by' => $this->updated_by?->username ?? null,
+            'deleted_by' => $this->deleted_by?->username ?? null,
+            'restored_by' => $this->restored_by?->username ?? null,
         ];
     }
 }

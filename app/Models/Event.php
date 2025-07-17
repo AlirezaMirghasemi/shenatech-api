@@ -21,6 +21,10 @@ class Event extends Model
         'title',
         'content',
         'status',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'restored_by',
     ];
 
     protected $casts = [
@@ -48,5 +52,22 @@ class Event extends Model
     {
         return $this->belongsToMany(Tag::class, 'reference_tags', 'event_id', 'tag_id')
             ->withTimestamps();
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function restorer()
+    {
+        return $this->belongsTo(User::class, 'restored_by');
+    }
+    public function destroyer()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

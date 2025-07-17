@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\ContentStatus; // Import Enum
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
@@ -18,7 +17,24 @@ return new class extends Migration
             $table->text('content');
             $table->string('status')->default(ContentStatus::PENDING->value); // Use Enum default
             $table->timestamps();
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users');
+
+            $table->foreignId('updated_by')
+                ->nullable()
+                ->constrained('users')
+            ;
+
             $table->softDeletes();
+
+            $table->foreignId('deleted_by')
+                ->nullable()
+                ->constrained('users')
+            ;
+            $table->foreignId('restored_by')
+                ->nullable()
+                ->constrained('users');
         });
     }
 

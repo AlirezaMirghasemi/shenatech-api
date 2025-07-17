@@ -1,9 +1,9 @@
 <?php
 namespace App\Interfaces;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
-use Spatie\Permission\Models\Role;
 
 interface UserServiceInterface
 {
