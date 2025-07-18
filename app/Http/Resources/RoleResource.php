@@ -17,10 +17,10 @@ class RoleResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
             'deleted_at' => $this->deleted_at?->toIso8601String(),
             'status' => $this->status,
-            'created_by' => $this->created_by?->username ?? null,
-            'updated_by' => $this->updated_by?->username ?? null,
-            'deleted_by' => $this->deleted_by?->username ?? null,
-            'restored_by' => $this->restored_by?->username ?? null,
+            'created_by' => $this->creator ?? null,
+            'updated_by' => $this->updater ?? null,
+            'deleted_by' => $this->destroyer ?? null,
+            'restored_by' => $this->restorer ?? null,
 
             // Load permissions only if loaded on the model
             'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),

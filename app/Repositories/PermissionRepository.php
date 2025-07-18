@@ -35,7 +35,7 @@ class PermissionRepository implements PermissionRepositoryInterface
 
     public function deletePermissions(array $permissions): bool
     {
-        return Permission::destroy($permissions);
+        return Permission::whereIn('id', $permissions)->delete();
     }
     public function revokeRolesFromPermission(Permission $permission, array $roleIds): bool
     {

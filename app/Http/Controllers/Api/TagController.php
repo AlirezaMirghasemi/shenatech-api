@@ -31,6 +31,12 @@ class TagController extends Controller
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
+    public function destroy(Request $request): JsonResponse
+    {
+        $tags = $request->input('tagIds', []);
+        $this->tagService->deleteTags($tags); // Service handles authorization
+        return response()->json(null, Response::HTTP_NO_CONTENT); // 204
+    }
     public function isUnique(string $title): bool
     {
         return $this->tagService->isTagTitleUnique($title);

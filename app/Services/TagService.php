@@ -35,6 +35,12 @@ class TagService implements TagServiceInterface
         }
         return $this->tagRepository->createTags($data);
     }
+    public function deleteTags(array $tags){
+        if (Gate::denies('manage tags')) {
+            throw new AuthorizationException('You do not have permission to manage tags.');
+        }
+        return $this->tagRepository->deleteTags($tags);
+    }
     public function isTagTitleUnique(string $title)
     {
         if (Gate::denies('manage tags')) {

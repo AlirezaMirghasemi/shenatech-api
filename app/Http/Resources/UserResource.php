@@ -37,14 +37,14 @@ class UserResource extends JsonResource
             //'profile_image_url' => $this->whenLoaded('profileImage', fn() => $this->profileImage?->url), // Use the accessor from Image model
             'profile_image' => $this->whenLoaded('profileImage', fn() => $this->profileImage),
             // Use RoleResource and PermissionResource (create them in Phase 8)
-            'roles' => RoleResource::collection($this->whenLoaded('roles')),
-            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
-            //'role_names' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
-            //'permission_names' => $this->whenLoaded('permissions', fn() => $this->permissions->pluck('name')),
-            'created_by' => $this->created_by?->username ?? null,
-            'updated_by' => $this->updated_by?->username ?? null,
-            'deleted_by' => $this->deleted_by?->username ?? null,
-            'restored_by' => $this->restored_by?->username ?? null,
+            // 'roles' => RoleResource::collection($this->whenLoaded('roles')),
+            // 'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
+            'role_names' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
+            'permission_names' => $this->whenLoaded('permissions', fn() => $this->permissions->pluck('name')),
+            'created_by' => $this->creator ?? null,
+            'updated_by' => $this->updater ?? null,
+            'deleted_by' => $this->destroyer ?? null,
+            'restored_by' => $this->restorer ?? null,
         ];
     }
 }
