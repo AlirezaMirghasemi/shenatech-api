@@ -7,7 +7,10 @@ use Illuminate\Validation\Rules\Enum;
 
 class RegisterRequest extends FormRequest
 {
-    public function authorize(): bool { return true; } // Allow anyone to attempt registration
+    public function authorize(): bool
+    {
+        return true;
+    } // Allow anyone to attempt registration
 
     public function rules(): array
     {

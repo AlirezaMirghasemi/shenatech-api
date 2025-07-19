@@ -33,6 +33,7 @@ class PermissionController extends Controller
     }
     public function store(StorePermissionRequest $request): JsonResponse
     {
+
         $permission = $this->permissionService->createPermission($request->validated());
         return (new PermissionResource($permission))
             ->response()

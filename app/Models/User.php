@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasRoles, SoftDeletes;
+    use HasApiTokens, HasRoles, SoftDeletes, HasPermissions;
 
     protected $fillable = [
         'username',
@@ -44,6 +45,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'gender' => \App\Enums\UserGender::class,
         'status' => \App\Enums\UserStatus::class,
+
     ];
 
     // --- Relationships ---
@@ -51,6 +53,7 @@ class User extends Authenticatable
     /**
      * رابطه کاربر با تصویر پروفایل (یک به یک معکوس)
      */
+
     public function profileImage(): BelongsTo
     {
         return $this->belongsTo(Image::class, 'image_id');

@@ -39,7 +39,7 @@ class UserResource extends JsonResource
             // Use RoleResource and PermissionResource (create them in Phase 8)
             // 'roles' => RoleResource::collection($this->whenLoaded('roles')),
             // 'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
-            'role_names' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
+            'role_names' => $this->whenLoaded('roles', fn()=>$this->roles->pluck('name')),
             'permission_names' => $this->whenLoaded('permissions', fn() => $this->permissions->pluck('name')),
             'created_by' => $this->creator ?? null,
             'updated_by' => $this->updater ?? null,

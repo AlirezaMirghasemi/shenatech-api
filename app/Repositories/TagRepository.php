@@ -37,7 +37,7 @@ class TagRepository implements TagRepositoryInterface
     }
     public function deleteTags(array $tags)
     {
-        $tags = Tag::where('id', $tags)->withTrashed();
+        $tags = Tag::whereIn('id', $tags["ids"])->get();
         $tags = $tags->each(function ($tag) {
             $tag->status = CommonStatus::DELETED;
             $tag->deleted_by = auth()->user()->id;

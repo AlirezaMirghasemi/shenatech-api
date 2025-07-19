@@ -53,7 +53,7 @@ class AuthController extends Controller
         $user =Auth::user();
         return response()->json([
             'data' => $user
-                ? new UserResource($user->load('profileImage', 'role_names', 'permission_names'))
+                ? new UserResource($user->load('profileImage', 'roles', 'permissions'))
                 : null
         ], $user ? 200 : 401);
     }
