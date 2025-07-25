@@ -189,4 +189,11 @@ class UserService implements UserServiceInterface
     {
         return $this->userRepository->getUnAssignedRoleUsers($role);
     }
+    public function restoreUsers(array $users)
+    {
+        if (Gate::denies('manage users')) {
+            throw new AuthorizationException('You do not have permission to manage users.');
+        }
+        return $this->userRepository->restoreUsers($users);
+    }
 }

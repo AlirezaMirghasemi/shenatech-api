@@ -12,8 +12,11 @@ interface UserRepositoryInterface
     public function findUserByEmail(string $email): ?User;
     public function createUser(array $data): User;
     public function updateUser(User $user, array $data): bool;
-    public function deleteUser(User $user,array $options): bool;
+    public function deleteUser(User $user, array $options): bool;
     public function updateUserProfileImage(User $user, UploadedFile $image): ?string; // Returns image path or null
     public function isUnique(string $fieldName, string $fieldValue): bool;
     public function getUnAssignedRoleUsers(Role $role): Collection;
+    public function restoreUsers(array $users);
+
+
 }

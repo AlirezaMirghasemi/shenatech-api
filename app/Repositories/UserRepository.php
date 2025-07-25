@@ -134,5 +134,15 @@ class UserRepository implements UserRepositoryInterface
         $users = User::whereNotIn('id', $role->users()->pluck('id'))->get();
         return $users;
     }
-
+public function restoreUsers(array $users)
+    {
+        $users = User::onlyTrashed()->whereIn('id', $users)->get();
+        foreach ($users as $user) {
+            $user->status = UserStatus::PENDING;
+            $user->deleted_by = null;
+            $user->touch();
+            $user->restore();
+        }
+        return $users;
+    }
 }

@@ -139,4 +139,9 @@ class UserController extends Controller
         $unassignedUsers = $this->userService->getUnAssignedRoleUsers($role);
         return UserResource::collection($unassignedUsers)->response()->getData(true);
     }
+     public function restores(Request $request):JsonResponse{
+        $users=$request->input('userIds',[]);
+        $this->userService->restoreUsers($users);
+        return response()->json(null,Response::HTTP_OK);
+    }
 }
