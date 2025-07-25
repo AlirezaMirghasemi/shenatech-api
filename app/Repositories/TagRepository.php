@@ -49,6 +49,18 @@ class TagRepository implements TagRepositoryInterface
     }
     public function isTagTitleUnique(string $title): bool
     {
-        return Tag::where('title', $title)->withTrashed()->doesntExist();
+        $response = Tag::where('title', $title)->withTrashed()->exists();
+        return !$response;
+    }
+    public function restoreTags(array $tags)
+    {
+        $tags = Tag::onlyTrashed()->whereIn('id', $tags)->get();
+        foreach ($tags as $tag) {
+            $tag->status = CommonStatus::ACTIVE;
+            $tag->deleted_by = null;
+            $tag->touch();
+            $tag->restore();
+        }
+        return $tags;
     }
 }

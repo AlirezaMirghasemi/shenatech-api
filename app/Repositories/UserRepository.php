@@ -127,7 +127,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function isUnique(string $fieldName, string $fieldValue): bool
     {
-        return !User::where($fieldName, $fieldValue)->exists();
+        return !User::where($fieldName, $fieldValue)->withTrashed()->exists();
     }
     public function getUnAssignedRoleUsers(Role $role): Collection
     {

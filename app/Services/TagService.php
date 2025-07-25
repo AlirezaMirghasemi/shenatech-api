@@ -15,18 +15,17 @@ class TagService implements TagServiceInterface
         $this->tagRepository = $tagRepository;
     }
 
-    public function getAllTags(int $perPage = 10, string $search = null)
+    public function getAllTags(int $page = 1, int $perPage = 10, string $search = null)
     {
         if (Gate::denies('view tags')) {
             throw new AuthorizationException('You do not have permission to view tags.');
         }
-        if($search == null){
+        if ($search == null) {
             $tags = $this->tagRepository->getAllTags();
-        }
-        else{
+        } else {
             $tags = $this->tagRepository->getAllTags()->where('title', 'like', "%{$search}%");
         }
-        return $tags->paginate($perPage);
+        return $tags->paginate($perPage, ['*'], 'page', $page);
     }
     public function createTags(array $data)
     {
@@ -35,7 +34,8 @@ class TagService implements TagServiceInterface
         }
         return $this->tagRepository->createTags($data);
     }
-    public function deleteTags(array $tags){
+    public function deleteTags(array $tags)
+    {
         if (Gate::denies('manage tags')) {
             throw new AuthorizationException('You do not have permission to manage tags.');
         }
@@ -47,5 +47,12 @@ class TagService implements TagServiceInterface
             throw new AuthorizationException('You do not have permission to manage tags.');
         }
         return $this->tagRepository->isTagTitleUnique($title);
+    }
+    public function restoreTags(array $tags)
+    {
+        if (Gate::denies('manage tags')) {
+            throw new AuthorizationException('You do not have permission to manage tags.');
+        }
+        return $this->tagRepository->restoreTags($tags);
     }
 }

@@ -33,9 +33,14 @@ class UserController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        // Pass query parameters for potential filtering in service
-        $users = $this->userService->getAllUsers($request->query());
+
+         $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1); // دریافت شماره صفحه
+
+        $search = $request->input('search', null);
+        $users = $this->userService->getAllUsers($page,$perPage, $search);
         return UserResource::collection($users)->response();
+
     }
 
     /**
@@ -115,12 +120,12 @@ class UserController extends Controller
         $updatedUser = $this->userService->assignRolesToUser($user->id, $request->validated('roles'));
         return (new UserResource($updatedUser))->response();
     }
-    public function isUnique(Request $request): bool
+    public function isUnique(Request $request): JsonResponse
     {
         $fieldName = $request->query('fieldName');
         $fieldValue = $request->query('fieldValue');
         $isUnique = $this->userService->isUnique($fieldName, $fieldValue);
-        return $isUnique;
+        return response()->json(['isUnique' => $isUnique]);
     }
     public function updateStatus(Request $request, User $user): JsonResponse
     {

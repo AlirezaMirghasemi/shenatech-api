@@ -11,6 +11,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/tag-name-is-unique/{title}', [TagController::class, 'isUnique'])->name('isUnique');
             Route::post('/store', [TagController::class, 'store'])->name('store');
             Route::delete('/', [TagController::class, 'destroy'])->name('destroy');
+            Route::post('/restores', [TagController::class, 'restores'])->name('restores');
         });
 
 

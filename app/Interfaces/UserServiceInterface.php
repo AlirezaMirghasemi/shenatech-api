@@ -7,7 +7,7 @@ use Illuminate\Support\Collection as SupportCollection;
 
 interface UserServiceInterface
 {
-    public function getAllUsers(array $filters = []);
+    public function getAllUsers(int $page, int $perPage, string $search = null);
     public function getUserById(int $id): ?User;
     public function createUser(array $userData): User;
     public function updateUser(int $id, array $userData, ?UploadedFile $image = null): User;

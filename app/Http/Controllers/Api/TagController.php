@@ -20,8 +20,10 @@ class TagController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 10);
-        $search=$request->input('search',null);
-        $tags = $this->tagService->getAllTags($perPage,$search);
+        $page = $request->input('page', 1); // دریافت شماره صفحه
+
+        $search = $request->input('search', null);
+        $tags = $this->tagService->getAllTags($page,$perPage, $search);
         return TagResource::collection($tags)->response();
     }
     public function store(StoreTagRequest $request): JsonResponse
@@ -37,8 +39,14 @@ class TagController extends Controller
         $this->tagService->deleteTags($tags); // Service handles authorization
         return response()->json(null, Response::HTTP_NO_CONTENT); // 204
     }
-    public function isUnique(string $title): bool
+    public function isUnique(string $title): JsonResponse
     {
-        return $this->tagService->isTagTitleUnique($title);
+        $isUnique = $this->tagService->isTagTitleUnique($title);
+        return response()->json(['isUnique' => $isUnique]);
+    }
+    public function restores(Request $request):JsonResponse{
+        $tags=$request->input('tagIds',[]);
+        $this->tagService->restoreTags($tags);
+        return response()->json(null,Response::HTTP_OK);
     }
 }

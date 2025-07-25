@@ -23,10 +23,12 @@ class UserService implements UserServiceInterface
         $this->userRepository = $userRepository;
     }
 
-    public function getAllUsers(array $filters = [])
+    public function getAllUsers(int $page = 1, int $perPage = 10, string $search = null)
     {
-        $perPage = $filters["per_page"];
-        $search = $filters["search"];
+
+        $filters["per_page"] = $perPage;
+        $filters["search"] = $search;
+        $filters["page"] = $page;
         // Authorization Check
         if (Gate::denies('view users')) {
             throw new AuthorizationException('You do not have permission to view users.');

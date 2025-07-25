@@ -9,5 +9,5 @@ interface TagRepositoryInterface
     public function isTagTitleUnique(string $title): bool;
     public function deleteTags(array $tags);
 
-
+    public function restoreTags(array $tags);
 }
