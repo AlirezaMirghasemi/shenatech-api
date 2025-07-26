@@ -5,6 +5,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('roles')->name('roles.')->middleware('permission:view roles')->group(function () {
+        Route::middleware('permission:manage roles')->group(function () {
+            Route::post('/', [RoleController::class, 'store'])->name('store');
+            Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+            Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+            Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
+            Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
+            Route::put('{role}/assign-users', [RoleController::class, 'assignUsers'])->name('assignUsers');
+            Route::delete('{role}/revoke-users', [RoleController::class, 'revokeUsers'])->name('revokeUsers');
+        });
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');
         Route::get('/role-name-is-unique/{roleName}', [RoleController::class, 'isUnique'])->name('isUnique');
@@ -18,14 +27,5 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('permission:view permissions')
             ->name('role.notPermissions');
 
-        Route::middleware('permission:manage roles')->group(function () {
-            Route::post('/', [RoleController::class, 'store'])->name('store');
-            Route::put('/{role}', [RoleController::class, 'update'])->name('update');
-            Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
-            Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
-            Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
-            Route::put('{role}/assign-users', [RoleController::class, 'assignUsers'])->name('assignUsers');
-            Route::delete('{role}/revoke-users', [RoleController::class, 'revokeUsers'])->name('revokeUsers');
-        });
     });
 });

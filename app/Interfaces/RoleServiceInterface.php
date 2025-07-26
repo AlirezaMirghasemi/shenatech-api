@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 
 interface RoleServiceInterface
 {
-    public function getAllRoles(int $perPage);
+    public function getAllRoles(int $page, int $perPage, string $search);
     public function findRoleById(int $id): Role;
     public function createRole(array $data): Role;
     public function updateRole(int $id, array $data): Role;

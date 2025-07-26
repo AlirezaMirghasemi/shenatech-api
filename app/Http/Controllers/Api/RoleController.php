@@ -34,8 +34,11 @@ class RoleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
-        $roles = $this->roleService->getAllRoles($perPage);
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+        $search = $request->input('search', null);
+
+        $roles = $this->roleService->getAllRoles($page, $perPage, $search);
         return RoleResource::collection($roles)->response();
     }
 
@@ -87,7 +90,7 @@ class RoleController extends Controller
      */
     public function assignPermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
     {
-        $permissionIds  = $request->validated('permissionIds');
+        $permissionIds = $request->validated('permissionIds');
         $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $permissionIds); // Service handles authorization and validation
         return (new RoleResource($updatedRole))->response();
     }
@@ -120,9 +123,10 @@ class RoleController extends Controller
             ->response()
             ->setStatusCode(Response::HTTP_OK);
     }
-    public function isUnique(string $roleName): bool
+    public function isUnique(string $roleName): JsonResponse
     {
-        return $this->roleService->isUniqueRoleName($roleName);
+        $isUnique = $this->roleService->isUniqueRoleName($roleName);
+        return response()->json(['isUnique' => $isUnique]);
     }
     public function assignUsers(AssignUsersRequest $request, Role $role): JsonResponse
     {
@@ -130,7 +134,7 @@ class RoleController extends Controller
         $updatedRole = $this->roleService->assignUsersToRole($role->id, $userIds);
         return (new RoleResource($updatedRole))->response();
     }
-     public function revokeUsers(AssignUsersRequest $request, Role $role): JsonResponse
+    public function revokeUsers(AssignUsersRequest $request, Role $role): JsonResponse
     {
         $users = $request->validated('userIds');
         $this->roleService->revokeUsersFromRole($role->id, $users);

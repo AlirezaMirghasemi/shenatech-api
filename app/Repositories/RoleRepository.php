@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\CommonStatus;
 use App\Interfaces\RoleRepositoryInterface;
 use App\Models\Role;
 use Illuminate\Support\Collection;
@@ -11,7 +12,10 @@ class RoleRepository implements RoleRepositoryInterface
 {
     public function getAllRoles(array $relations = [])
     {
-        return Role::with($relations)->orderBy('updated_at', 'desc');
+        if (auth()->user()->roles()->where('name', 'Admin')->exists())
+            return Role::with($relations)->orderBy('updated_at', 'desc')->withTrashed();
+        else
+            return Role::with($relations)->orderBy('updated_at', 'desc');
     }
 
     public function findRoleById(int $id, array $relations = []): ?Role
@@ -34,14 +38,20 @@ class RoleRepository implements RoleRepositoryInterface
         return $role->update($data);
     }
 
+
     public function deleteRole(Role $role): bool
     {
+        $role->status = CommonStatus::DELETED;
+        $role->deleted_by = auth()->user()->id;
+        $role->update();
+        $role->delete();
         return $role->delete();
     }
 
     public function isUniqueRoleName(string $roleName): bool
     {
-        return Role::where('name', $roleName)->doesntExist();
+        $response = Role::where('name', $roleName)->withTrashed()->exists();
+        return !$response;
     }
     public function assignUsersToRole(Role $role, array $users): void
     {

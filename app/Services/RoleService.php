@@ -30,16 +30,17 @@ class RoleService implements RoleServiceInterface
         $this->permissionRepository = $permissionRepository;
     }
 
-    public function getAllRoles(int $perPage = 10)
+    public function getAllRoles(int $page = 1, int $perPage = 10, string $search = null)
     {
-        // Authorization Check
         if (Gate::denies('view roles')) {
             throw new AuthorizationException('You do not have permission to view roles.');
         }
-
-        $query = $this->roleRepository->getAllRoles(['permissions']);
-
-        return $query->paginate($perPage);
+        if ($search == null) {
+            $roles = $this->roleRepository->getAllRoles();
+        } else {
+            $roles = $this->roleRepository->getAllRoles()->where('name', 'like', "%{$search}%");
+        }
+        return $roles->paginate($perPage, ['*'], 'page', $page);
     }
 
     public function findRoleById(int $id): Role
@@ -199,6 +200,9 @@ class RoleService implements RoleServiceInterface
     }
     public function isUniqueRoleName(string $roleName): bool
     {
+        if (Gate::denies('manage roles')) {
+            throw new AuthorizationException('You do not have permission to manage roles.');
+        }
         $roleName = trim($roleName);
         return $this->roleRepository->isUniqueRoleName($roleName);
     }
