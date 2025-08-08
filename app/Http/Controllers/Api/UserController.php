@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\ImageType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\DeleteUserRequest;
+use App\Http\Resources\RoleResource;
 use App\Models\User;
 use App\Interfaces\UserServiceInterface; // Inject Service Interface
 use App\Http\Resources\UserResource;
@@ -34,11 +35,11 @@ class UserController extends Controller
     public function index(Request $request): JsonResponse
     {
 
-         $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1); // دریافت شماره صفحه
 
         $search = $request->input('search', null);
-        $users = $this->userService->getAllUsers($page,$perPage, $search);
+        $users = $this->userService->getAllUsers($page, $perPage, $search);
         return UserResource::collection($users)->response();
 
     }
@@ -94,7 +95,7 @@ class UserController extends Controller
      * Remove the specified resource from storage.
      * Using route model binding here.
      */
-    public function destroy(User $user ,DeleteUserRequest $request): JsonResponse
+    public function destroy(User $user, DeleteUserRequest $request): JsonResponse
     {
         $options = $request->validated();
         $this->userService->deleteUser($user->id, $options);
@@ -133,15 +134,24 @@ class UserController extends Controller
         $updatedUser = $this->userService->updateUser($user->id, ['status' => $status]);
         return (new UserResource($updatedUser))->response();
     }
-    public function fetchUnAssignedRoleUsers(int $roleId, RoleService $roleService): array
+    public function fetchUnAssignedRoleUsers(int $roleId, RoleService $roleService): JsonResponse
     {
         $role = $roleService->findRoleById($roleId);
         $unassignedUsers = $this->userService->getUnAssignedRoleUsers($role);
-        return UserResource::collection($unassignedUsers)->response()->getData(true);
+        return UserResource::collection($unassignedUsers)->response();
     }
-     public function restores(Request $request):JsonResponse{
-        $users=$request->input('userIds',[]);
+    public function restores(Request $request): JsonResponse
+    {
+        $users = $request->input('userIds', []);
         $this->userService->restoreUsers($users);
-        return response()->json(null,Response::HTTP_OK);
+        return response()->json(null, Response::HTTP_OK);
+    }
+    public function fetchUserRoles(User $user, Request $request): JsonResponse
+    {
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1); // دریافت شماره صفحه
+        $search = $request->input('search', null);
+        $roles = $this->userService->fetchUserRoles($user->id, $page, $perPage, $search);
+        return RoleResource::collection($roles)->response();
     }
 }

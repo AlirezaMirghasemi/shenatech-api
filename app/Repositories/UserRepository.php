@@ -131,8 +131,8 @@ class UserRepository implements UserRepositoryInterface
     }
     public function getUnAssignedRoleUsers(Role $role): Collection
     {
-        $users = User::whereNotIn('id', $role->users()->pluck('id'))->get();
-        return $users;
+        $users = User::whereNotIn('id', $role->users()->pluck('id'));
+        return $users->get();
     }
 public function restoreUsers(array $users)
     {
@@ -144,5 +144,9 @@ public function restoreUsers(array $users)
             $user->restore();
         }
         return $users;
+    }
+    public function fetchUserRoles(int $userId)
+    {
+         return $this->findUserById($userId)->roles();
     }
 }

@@ -7,11 +7,24 @@ use Illuminate\Support\Collection;
 
 interface PermissionRepositoryInterface
 {
-    public function getAllPermissions();
-    public function isUniquePermissionName(string $permissionName): bool;
-    public function createPermission(array $data): Permission;
-    public function findPermissionById(int $id): ?Permission;
-    public function deletePermissions(array $permissions): bool;
-    public function revokeRolesFromPermission(Permission $permission, array $roleIds): bool;
-    // public function getPermissionUsers(int $permissionId);
+    public function paginateWithFilters(array $filters);
+
+    public function find(int $id);
+
+    public function create(array $data);
+
+    public function update(int $id, array $data);
+
+    public function delete(int $id);
+    public function restore(int $id);
+    public function existsByName(string $name): bool;
+
+
+    public function fetchPaginateAssignedRoles(Permission $permission, array $filters);
+
+    public function fetchUnAssignedRoles(array $assignedRoleIds);
+    public function fetchPaginateAssignedUsers(Permission $permission, array $filters);
+
+
+    public function fetchUnAssignedUsers(array $assignedUserIds);
 }

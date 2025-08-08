@@ -187,6 +187,7 @@ class UserService implements UserServiceInterface
     }
     public function getUnAssignedRoleUsers(Role $role): SupportCollection
     {
+
         return $this->userRepository->getUnAssignedRoleUsers($role);
     }
     public function restoreUsers(array $users)
@@ -196,4 +197,14 @@ class UserService implements UserServiceInterface
         }
         return $this->userRepository->restoreUsers($users);
     }
+    public function fetchUserRoles(int $userId, int $page, int $perPage, string $search = null)
+    {
+
+        $query = $this->userRepository->fetchUserRoles($userId);
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+        return $query->paginate($perPage, ['*'], 'page', $page);
+    }
+
 }

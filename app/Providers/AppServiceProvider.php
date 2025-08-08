@@ -3,8 +3,12 @@ namespace App\Providers;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Tag;
+use App\Models\User;
 use App\Observers\PermissionObserver;
 use App\Observers\RoleObserver;
+use App\Observers\TagObserver;
+use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -62,21 +66,21 @@ class AppServiceProvider extends ServiceProvider
 
     }
     protected function configureRateLimiting()
-{
-    RateLimiter::for('api', function (Request $request) {
-        return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
-    });
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
 
-    RateLimiter::for('login', function (Request $request) {
-        return Limit::perMinute(5) // حداکثر 5 درخواست در دقیقه
-            ->by($request->input('email') . '|' . $request->ip()) // ترکیب ایمیل و IP
-            ->response(function (Request $request, array $headers) {
-                return response()->json([
-                    'message' => 'Too many login attempts. Please try again later.'
-                ], 429, $headers);
-            });
-    });
-}
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5) // حداکثر 5 درخواست در دقیقه
+                ->by($request->input('email') . '|' . $request->ip()) // ترکیب ایمیل و IP
+                ->response(function (Request $request, array $headers) {
+                    return response()->json([
+                        'message' => 'Too many login attempts. Please try again later.'
+                    ], 429, $headers);
+                });
+        });
+    }
     /**
      * Bootstrap services.
      */
@@ -85,5 +89,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         Permission::observe(PermissionObserver::class);
         Role::observe(RoleObserver::class);
+        User::observe(UserObserver::class);
+        Tag::observe(TagObserver::class);
     }
 }

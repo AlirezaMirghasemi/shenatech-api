@@ -13,7 +13,7 @@ class RolePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasPermissionTo('view roles');
     }
 
     /**
@@ -21,7 +21,7 @@ class RolePolicy
      */
     public function view(User $user, Role $role): bool
     {
-        return false;
+        return $user->hasPermissionTo('view roles');
     }
 
     /**
@@ -29,7 +29,7 @@ class RolePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasPermissionTo('manage roles');
     }
 
     /**
@@ -37,7 +37,7 @@ class RolePolicy
      */
     public function update(User $user, Role $role): bool
     {
-        return false;
+        return $user->hasPermissionTo('manage roles');
     }
 
     /**
@@ -45,7 +45,9 @@ class RolePolicy
      */
     public function delete(User $user, Role $role): bool
     {
-        return false;
+        if (in_array($role->name, ['Admin']))
+            return false;
+        return $user->hasPermissionTo('manage roles');
     }
 
     /**
@@ -53,7 +55,7 @@ class RolePolicy
      */
     public function restore(User $user, Role $role): bool
     {
-        return false;
+        return $user->hasPermissionTo('manage roles');
     }
 
     /**
@@ -61,6 +63,15 @@ class RolePolicy
      */
     public function forceDelete(User $user, Role $role): bool
     {
-        return false;
+        return $user->hasRole('Admin') && $user->hasPermissionTo('manage roles');
+    }
+    public function assignPermissions(User $user, Role $role): bool
+    {
+        return $user->hasPermissionTo('manage roles');
+    }
+
+    public function assignUsers(User $user, Role $role): bool
+    {
+        return $user->hasPermissionTo('manage roles');
     }
 }

@@ -17,6 +17,8 @@ interface UserRepositoryInterface
     public function isUnique(string $fieldName, string $fieldValue): bool;
     public function getUnAssignedRoleUsers(Role $role): Collection;
     public function restoreUsers(array $users);
+    public function fetchUserRoles(int $user);
+
 
 
 }

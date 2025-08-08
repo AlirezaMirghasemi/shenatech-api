@@ -1,31 +1,91 @@
 <?php
 
 use App\Http\Controllers\Api\RoleController;
+use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::prefix('roles')->name('roles.')->middleware('permission:view roles')->group(function () {
-        Route::middleware('permission:manage roles')->group(function () {
-            Route::post('/', [RoleController::class, 'store'])->name('store');
-            Route::put('/{role}', [RoleController::class, 'update'])->name('update');
-            Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
-            Route::post('/{role}/assign-permissions', [RoleController::class, 'assignPermissions'])->name('assignPermissions');
-            Route::delete('/{role}/revoke-permissions', [RoleController::class, 'revokePermissions'])->name('revokePermissions');
-            Route::put('{role}/assign-users', [RoleController::class, 'assignUsers'])->name('assignUsers');
-            Route::delete('{role}/revoke-users', [RoleController::class, 'revokeUsers'])->name('revokeUsers');
-        });
-        Route::get('/', [RoleController::class, 'index'])->name('index');
-        Route::get('/{role}', [RoleController::class, 'show'])->name('show');
-        Route::get('/role-name-is-unique/{roleName}', [RoleController::class, 'isUnique'])->name('isUnique');
-        Route::get('/{role}/permissions', [RoleController::class, 'getRolePermissions'])
-            ->middleware('permission:view permissions')
-            ->name('role.permissions');
-        Route::get('/{role}/users', [RoleController::class, 'getRoleUsers'])
-            ->middleware('permission:view users')
-            ->name('role.users');
-        Route::get('/{role}/not-permissions', [RoleController::class, 'getNotRolePermissions'])
-            ->middleware('permission:view permissions')
-            ->name('role.notPermissions');
+Route::middleware('auth:sanctum')
+    ->prefix('roles')
+    ->name('roles.')
+    ->group(function () {
+        /* #region CRUD */
+        Route::get('/', [RoleController::class, 'index'])
+            ->can('viewAny', Role::class)
+            ->name('index');
+
+        Route::get('/{role}', [RoleController::class, 'show'])
+            ->can('view', 'role')
+            ->name('show');
+
+        Route::post('/', [RoleController::class, 'store'])
+            ->can('create', Role::class)
+            ->name('store');
+
+        Route::put('/{role}', [RoleController::class, 'update'])
+            ->can('update', 'role')
+            ->name('update');
+
+
+        Route::delete('/{role}', [RoleController::class, 'destroy'])
+            ->can('delete', 'role')
+            ->name('destroy');
+
+
+        Route::put('/restore/{roles}', [RoleController::class, 'restore'])
+            ->can('update', 'role')
+            ->name('restore');
+
+
+        Route::get('/is_unique/{roleName}', [RoleController::class, 'isUnique'])
+            ->can('viewAny', Role::class)
+            ->name('isUnique');
+        /* #endregion */
+
+
+
+        /* #region Assign Permissions */
+        Route::post('/{role}/assign_permissions', [RoleController::class, 'assignPermissions'])
+            ->can('assignPermissions', 'role')
+            ->name('assignPermissions');
+
+
+        Route::delete('/{role}/revoke_permissions', [RoleController::class, 'revokePermissions'])
+            ->can('assignPermissions', 'role')
+            ->name('revokePermissions');
+
+        /* #endregion */
+
+        /* #region Fetch Role Permissions  */
+
+        Route::get('/{role}/assigned_permissions', [RoleController::class, 'fetchAssignedPermissions'])
+            ->can('viewAny', Permission::class)
+            ->name('fetchAssignedPermissions');
+
+
+        Route::get('/{role}/unassigned_permissions', [RoleController::class, 'fetchUnAssignedPermissions'])
+            ->can('viewAny', Permission::class)
+            ->name('fetchUnAssignedPermissions');
+
+        /* #endregion */
+
+        /* #region Assign Users */
+        Route::put('/{role}/assign_users', [RoleController::class, 'assignUsers'])
+            ->can('assignUsers', 'role')
+            ->name('assignUsers');
+        Route::delete('/{role}/revoke_users', [RoleController::class, 'revokeUsers'])
+            ->can('assignUsers', 'role')
+            ->name('revokeUsers');
+        /* #endregion */
+
+        /* #region Fetch Role Users */
+        Route::get('/{role}/assigned_users', [RoleController::class, 'fetchAssignedUsers'])
+            ->can('viewAny', User::class)
+            ->name('fetchAssignedUsers');
+        Route::get('/{role}/unassigned_users', [RoleController::class, 'fetchUnAssignedUsers'])
+            ->can('viewAny', User::class)
+            ->name('fetchUnAssignedUsers');
+        /* #endregion */
 
     });
-});

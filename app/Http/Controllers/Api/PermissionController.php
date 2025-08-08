@@ -3,69 +3,144 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Permission\IndexPermissionRequest;
 use App\Http\Requests\Permission\RevokePermissionRolesRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
+use App\Http\Requests\Permission\UpdatePermissionRequest;
+use App\Http\Resources\RoleResource;
+use App\Http\Resources\UserResource;
 use App\Interfaces\PermissionServiceInterface; // Inject Service Interface
 use App\Http\Resources\PermissionResource; // Permission Resource
 use App\Models\Permission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response; // For status codes
+
 class PermissionController extends Controller
 {
-    protected $permissionService;
+    protected PermissionServiceInterface $permissionService;
 
     public function __construct(PermissionServiceInterface $permissionService)
     {
         $this->permissionService = $permissionService;
-        // Authorization is primarily handled within the Service layer methods
-        // $this->middleware('permission:view permissions')->only(['index']);
     }
 
 
-    public function index(Request $request): JsonResponse
+
+    /* #region CRUD */
+    public function index(IndexPermissionRequest $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $search=$request->input('search',null);
-        $permissions = $this->permissionService->getAllPermissions($perPage,$search);
+        $filters = $request->validated();
 
-        return PermissionResource::collection($permissions)->response();
+        $permissions = $this->permissionService->paginateWithFilters($filters);
+        return PermissionResource::collection($permissions);
     }
+
+    public function show(int $id): JsonResponse
+    {
+        $permission = $this->permissionService->findById($id);
+        return response()->json(new PermissionResource($permission));
+    }
+
     public function store(StorePermissionRequest $request): JsonResponse
     {
+        $data = $request->validated();
+        $permission = $this->permissionService->create($data);
 
-        $permission = $this->permissionService->createPermission($request->validated());
-        return (new PermissionResource($permission))
-            ->response()
-            ->setStatusCode(Response::HTTP_CREATED); // 201
+        return response()->json([
+            'message' => __('messages.permissions.created'),
+            'data' => new PermissionResource($permission),
+        ], 201);
     }
-    public function isUnique(string $permissionName): bool
+
+    public function update(UpdatePermissionRequest $request, Permission $permission): JsonResponse
     {
-        return $this->permissionService->isUniquePermissionName($permissionName);
+        $data = $request->validated();
+        $permission = $this->permissionService->update($permission->id, $data);
+        return response()->json([
+            'message' => __('messages.permissions.updated'),
+            'data' => new PermissionResource($permission),
+        ]);
     }
-    public function destroy(Request $request): JsonResponse
+
+
+    public function destroy(Permission $permission): JsonResponse
     {
-        $permissions = $request->input('permissionIds', []);
-        $this->permissionService->deletePermissions($permissions); // Service handles authorization
-        return response()->json(null, Response::HTTP_NO_CONTENT); // 204
+        $this->permissionService->delete($permission->id);
+        return response()->json([
+            'message' => __('messages.permissions.deleted'),
+        ]);
     }
-    public function getPermissionRoles(Permission $permission, Request $request): JsonResponse
+
+    public function restore(Permission $permission): JsonResponse
     {
-        $perPage = $request->input('per_page', 10);
-        $rolesResponse = $this->permissionService->getPermissionRoles($permission, $perPage);
-        return $rolesResponse;
+        $this->permissionService->restore($permission->id);
+        return response()->json([
+            'message' => __('messages.permissions.restored'),
+        ]);
     }
-    public function getPermissionUsers(Permission $permission, Request $request): JsonResponse
+
+    public function isUnique(string $permissionName): JsonResponse
     {
-        $perPage = $request->input('per_page', 10);
-        $users = $this->permissionService->getPermissionUsers($permission, $perPage);
-        return $users;
+        $isUnique = $this->permissionService->isUnique($permissionName);
+        return response()->json(['unique' => $isUnique]);
     }
-    public function revokeRoles(RevokePermissionRolesRequest $request, Permission $permission): JsonResponse
+    /* #endregion */
+
+    /* #region Assign Roles */
+    public function assignRoles(Permission $permission): JsonResponse
     {
-        $this->permissionService->revokeRolesFromPermission($permission->id, $request->validated('roleIds'));
-        return (new PermissionResource($permission->fresh(['roles'])))
-            ->response()
-            ->setStatusCode(Response::HTTP_OK);
+        $roles = request()->input('roles', []);
+        $this->permissionService->assignRoles($permission->id, $roles);
+
+        return response()->json([
+            'message' => __('messages.permission.roles_assigned'),
+        ]);
+
     }
+
+    public function revokeRoles(Permission $permission): JsonResponse
+    {
+        $roles = request()->input('roles', []);
+
+        $this->permissionService->revokeRoles($permission->id, $roles);
+
+        return response()->json([
+            'message' => __('messages.permissions.roles_revoked'),
+        ]);
+
+    }
+    /* #endregion */
+
+    /* #region Fetch Permission Roles  */
+    public function fetchAssignedRoles(Permission $permission, IndexPermissionRequest $request)
+    {
+        $roles = $this->permissionService->fetchAssignedRoles($permission->id, $request->validated());
+        return RoleResource::collection($roles);
+
+    }
+
+    public function fetchUnAssignedRoles(Permission $permission): JsonResponse
+    {
+        $roles = $this->permissionService->fetchUnassignedRoles($permission->id);
+        return response()->json([
+            'data' => $roles,
+        ]);
+    }
+    /* #endregion */
+    /* #region Fetch Permission Users */
+    public function fetchAssignedUsers(Permission $permission, IndexPermissionRequest $request)
+    {
+        $users = $this->permissionService->fetchAssignedUsers($permission->id, $request->validated());
+        return UserResource::collection($users);
+
+    }
+    public function fetchUnAssignedUsers(Permission $permission): JsonResponse
+    {
+        $users = $this->permissionService->fetchUnassignedUsers($permission->id);
+        return response()->json([
+            'data' => $users,
+        ]);
+    }
+    /* #endregion */
 }

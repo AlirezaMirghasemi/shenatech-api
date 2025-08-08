@@ -7,16 +7,34 @@ use Illuminate\Support\Collection as SupportCollection;
 
 interface PermissionServiceInterface
 {
-    public function getAllPermissions(int $perPage,string $search=null);
-    public function findPermissionById(int $id): Permission;
-    public function createPermission(array $data): Permission;
-    public function assignRolesToPermission(int $permissionId, array $roleIds): Permission;
-    public function isUniquePermissionName(string $permissionName): bool;
-    public function deletePermissions(array $permissions): bool;
-    public function getPermissionRoles(Permission $permission, int $perPage);
-    public function getPermissionUsers(Permission $permission, int $perPage);
+    /* #region CRUD */
+    public function paginateWithFilters(array $filters);
 
-    public function revokeRolesFromPermission(int $permissionId, array $roleIds);
-    // Methods for managing permissions directly via API could be added here if needed,
-    // but it's generally safer to manage them via roles or seeders.
+    public function findById(int $id);
+
+    public function create(array $data);
+
+    public function update(int $id, array $data);
+
+    public function delete(int $id);
+
+    public function restore(int $id);
+    public function isUnique(string $name);
+    /* #endregion */
+
+    /* #region Assign Roles */
+    public function assignRoles(int $id, array $roles);
+    public function revokeRoles(int $id, array $roles);
+    /* #endregion */
+    /* #region Fetch Permission Roles  */
+    public function fetchAssignedRoles(int $id, array $filters);
+    public function fetchUnAssignedRoles(int $id);
+    /* #endregion */
+    /* #region Fetch Permission Users  */
+    public function fetchAssignedUsers(int $id, array $filters);
+    public function fetchUnAssignedUsers(int $id);
+    /* #endregion */
+
+
+
 }

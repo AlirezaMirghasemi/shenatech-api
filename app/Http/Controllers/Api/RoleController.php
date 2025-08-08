@@ -4,142 +4,176 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Role\AssignUsersRequest;
-use App\Http\Requests\Role\StoreRoleRequest; // Store Request
-use App\Http\Requests\Role\UpdateRoleRequest; // Update Request
-use App\Http\Requests\Role\AssignPermissionsRequest; // Assign Permissions Request
+use App\Http\Requests\Role\IndexRoleRequest;
+use App\Http\Requests\Role\RoleRequest;
+use App\Http\Requests\Role\StoreRoleRequest;
+use App\Http\Requests\Role\UpdateRoleRequest;
+use App\Http\Requests\Role\AssignPermissionsRequest;
 use App\Http\Resources\PermissionCollection;
+use App\Http\Resources\PermissionResource;
 use App\Http\Resources\RoleResource;
+use App\Http\Resources\UserResource;
 use App\Interfaces\RoleServiceInterface;
 use App\Models\Role;
+use App\Services\RoleService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request; // Needed for type hinting sometimes
-use Symfony\Component\HttpFoundation\Response; // For status codes
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-
+//IMPORTANT !!!TODO: Refactor role service and role repository
 class RoleController extends Controller
 {
-    protected $roleService;
+    protected RoleServiceInterface $roleService;
 
     public function __construct(RoleServiceInterface $roleService)
     {
         $this->roleService = $roleService;
-        // Authorization is primarily handled within the Service layer methods
-        // but you can add middleware here for clarity or pre-checks if preferred.
-        // $this->middleware('permission:view roles')->only(['index', 'show']);
-        // $this->middleware('permission:manage roles')->only(['store', 'update', 'destroy', 'assignPermissions']);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request): JsonResponse
+
+
+    /* #region CRUD */
+    public function index(IndexRoleRequest $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
-        $search = $request->input('search', null);
+        $filters = $request->validated();
 
-        $roles = $this->roleService->getAllRoles($page, $perPage, $search);
-        return RoleResource::collection($roles)->response();
+        $roles = $this->roleService->paginateWithFilters($filters);
+        return RoleResource::collection($roles);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function show(int $id): JsonResponse
+    {
+        $role = $this->roleService->findById($id);
+        return response()->json(new RoleResource($role));
+    }
+
     public function store(StoreRoleRequest $request): JsonResponse
     {
-        $role = $this->roleService->createRole($request->validated()); // Service handles authorization and permission assignment
-        return (new RoleResource($role))
-            ->response()
-            ->setStatusCode(Response::HTTP_CREATED); // 201
+        $data = $request->validated();
+        $role = $this->roleService->create($data);
+
+        return response()->json([
+            'message' => __('messages.roles.created'),
+            'data' => new RoleResource($role),
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     * Using route model binding.
-     */
-    public function show(Role $role): JsonResponse // Using Route Model Binding
-    {
-        // Service layer handles authorization and loading relations if needed via findRoleById
-        $loadedRole = $this->roleService->findRoleById($role->id); // Re-fetch via service for consistency if needed
-        return (new RoleResource($loadedRole))->response();
-    }
-
-    /**
-     * Update the specified resource in storage.
-     * Using route model binding.
-     */
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
-        $updatedRole = $this->roleService->updateRole($role->id, $request->validated()); // Service handles authorization and permission assignment
-        return (new RoleResource($updatedRole))->response();
+        $data = $request->validated();
+        $role = $this->roleService->update($role->id, $data);
+        return response()->json([
+            'message' => __('messages.roles.updated'),
+            'data' => new RoleResource($role),
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * Using route model binding.
-     */
+
     public function destroy(Role $role): JsonResponse
     {
-        $this->roleService->deleteRole($role->id); // Service handles authorization and constraints
-        return response()->json(null, Response::HTTP_NO_CONTENT); // 204
+        $this->roleService->delete($role->id);
+        return response()->json([
+            'message' => __('messages.roles.deleted'),
+        ]);
     }
 
-    /**
-     * Assign permissions to the specified role.
-     * Using route model binding.
-     */
-    public function assignPermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
+    public function restore(Role $role): JsonResponse
     {
-        $permissionIds = $request->validated('permissionIds');
-        $updatedRole = $this->roleService->assignPermissionsToRole($role->id, $permissionIds); // Service handles authorization and validation
-        return (new RoleResource($updatedRole))->response();
+        $this->roleService->restore($role->id);
+        return response()->json([
+            'message' => __('messages.roles.restored'),
+        ]);
     }
 
-    public function getRolePermissions(Role $role, Request $request): JsonResponse
-    {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
-
-        $permissionsResponse = $this->roleService->getRolePermissions($role, $perPage);
-        return $permissionsResponse;
-    }
-    public function getRoleUsers(Role $role, Request $request): JsonResponse
-    {
-        $perPage = $request->input('per_page', 10); // دریافت تعداد آیتم در هر صفحه
-
-        $usersResponse = $this->roleService->getRoleUsers($role, $perPage);
-        return $usersResponse;
-    }
-
-    public function getNotRolePermissions(int $roleId): JsonResponse
-    {
-        $permissions = $this->roleService->getNotRolePermissions($roleId);
-        return $permissions;
-    }
-
-    public function revokePermissions(AssignPermissionsRequest $request, Role $role): JsonResponse
-    {
-        $this->roleService->revokePermissionsFromRole($role->id, $request->validated('permissionIds'));
-        return (new RoleResource($role->fresh(['permissions'])))
-            ->response()
-            ->setStatusCode(Response::HTTP_OK);
-    }
     public function isUnique(string $roleName): JsonResponse
     {
-        $isUnique = $this->roleService->isUniqueRoleName($roleName);
-        return response()->json(['isUnique' => $isUnique]);
+        $isUnique = $this->roleService->isUnique($roleName);
+        return response()->json(['unique' => $isUnique]);
     }
-    public function assignUsers(AssignUsersRequest $request, Role $role): JsonResponse
+
+    /* #endregion */
+
+
+    /* #region Assign Permissions */
+    public function assignPermissions(Role $role): JsonResponse
     {
-        $userIds = $request->validated('userIds');
-        $updatedRole = $this->roleService->assignUsersToRole($role->id, $userIds);
-        return (new RoleResource($updatedRole))->response();
+        $permissions = request()->input('permissions', []);
+        $this->roleService->assignPermissions($role->id, $permissions);
+
+        return response()->json([
+            'message' => __('messages.roles.permissions_assigned'),
+        ]);
+
     }
-    public function revokeUsers(AssignUsersRequest $request, Role $role): JsonResponse
+
+    public function revokePermissions(Role $role): JsonResponse
     {
-        $users = $request->validated('userIds');
-        $this->roleService->revokeUsersFromRole($role->id, $users);
-        return (new RoleResource($role->fresh(['users'])))
-            ->response()
-            ->setStatusCode(Response::HTTP_OK);
+        $permissions = request()->input('permissions', []);
+
+        $this->roleService->revokePermissions($role->id, $permissions);
+
+        return response()->json([
+            'message' => __('messages.roles.permissions_revoked'),
+        ]);
+
     }
+    /* #endregion */
+
+    /* #region Fetch Role Permissions  */
+    public function fetchAssignedPermissions(Role $role, IndexRoleRequest $request)
+    {
+        $permissions = $this->roleService->fetchAssignedPermissions($role->id, $request->validated());
+        return PermissionResource::collection($permissions);
+
+    }
+
+    public function fetchUnAssignedPermissions(Role $role): JsonResponse
+    {
+        $permissions = $this->roleService->fetchUnassignedPermissions($role->id);
+        return response()->json([
+            'data' => $permissions,
+        ]);
+    }
+    /* #endregion */
+
+
+    /* #region Assign Users  */
+    public function assignUsers(Role $role): JsonResponse
+    {
+        $users = request()->input('users', []);
+        $this->roleService->assignUsers($role->id, $users);
+
+        return response()->json([
+            'message' => __('messages.roles.users_assigned'),
+        ]);
+    }
+    public function revokeUsers(Role $role): JsonResponse
+    {
+        $users = request()->input('users', []);
+
+        $this->roleService->revokeUsers($role->id, $users);
+
+        return response()->json([
+            'message' => __('messages.roles.users_revoked'),
+        ]);
+    }
+
+    /* #endregion */
+
+
+    /* #region Fetch Role Users   */
+    public function fetchAssignedUsers(Role $role, IndexRoleRequest $request)
+    {
+        $users = $this->roleService->fetchAssignedUsers($role->id, $request->validated());
+        return UserResource::collection($users);
+
+    }
+    public function fetchUnAssignedUsers(Role $role): JsonResponse
+    {
+        $users = $this->roleService->fetchUnassignedUsers($role->id);
+        return response()->json([
+            'data' => $users,
+        ]);
+    }
+    /* #endregion */
 }

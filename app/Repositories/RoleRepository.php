@@ -2,64 +2,99 @@
 
 namespace App\Repositories;
 
-use App\Enums\CommonStatus;
 use App\Interfaces\RoleRepositoryInterface;
+use App\Models\Permission;
 use App\Models\Role;
-use Illuminate\Support\Collection;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class RoleRepository implements RoleRepositoryInterface
 {
-    public function getAllRoles(array $relations = [])
+    protected Role $model;
+    public function __construct(Role $model)
     {
-        if (auth()->user()->roles()->where('name', 'Admin')->exists())
-            return Role::with($relations)->orderBy('updated_at', 'desc')->withTrashed();
-        else
-            return Role::with($relations)->orderBy('updated_at', 'desc');
+        $this->model = $model;
     }
 
-    public function findRoleById(int $id, array $relations = []): ?Role
+    /* #region CRUD */
+    public function paginateWithFilters(array $filters): LengthAwarePaginator
     {
-        return Role::with($relations)->find($id);
+        $query = $this->model->query();
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $perPage = $filters['per_page'] ?? 15;
+        $page = $filters['page'] ?? 1;
+
+        return $query->paginate($perPage, ['*'], 'page', $page);
     }
 
-    public function findRoleByName(string $name, array $relations = []): ?Role
+    public function find(int $id): ?Role
     {
-        return Role::with($relations)->where('name', $name)->first();
+        return $this->model->findOrFail($id);
     }
 
-    public function createRole(array $data): Role
+    public function create(array $data): Role
     {
-        return Role::create($data);
+        return $this->model->create($data);
     }
 
-    public function updateRole(Role $role, array $data): bool
+    public function update(int $id, array $data): Role
     {
-        return $role->update($data);
+        $role = $this->find($id);
+        $role->update($data);
+
+        return $role;
     }
 
-
-    public function deleteRole(Role $role): bool
+    public function delete(int $id): void
     {
-        $role->status = CommonStatus::DELETED;
-        $role->deleted_by = auth()->user()->id;
-        $role->update();
+        $role = $this->find($id);
         $role->delete();
-        return $role->delete();
+    }
+    public function restore(int $id): void
+    {
+        $role = $this->model->withTrashed()->findOrFail($id);
+        $role->restore();
     }
 
-    public function isUniqueRoleName(string $roleName): bool
+    public function existsByName(string $name): bool
     {
-        $response = Role::where('name', $roleName)->withTrashed()->exists();
-        return !$response;
+        return $this->model->where('name', $name)->exists();
     }
-    public function assignUsersToRole(Role $role, array $users): void
+    /* #endregion */
+
+    public function fetchPaginateAssignedPermissions(Role $role, array $filters)
     {
-        $role->users()->syncWithoutDetaching($users);
-        $role->touch();
+        $query = $role->permissions();
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', "%{$filters['search']}%");
+        }
+        return $query->paginate($filters['per_page'] ?? 15, ['*'], 'page', $filters['page'] ?? 1);
     }
-    public function revokeUsersFromRole(Role $role, array $users): void
+    public function fetchUnAssignedPermissions(array $assignedPermissionIds)
     {
-        $role->users()->detach($users);
+        return Permission::whereNotIn('id', $assignedPermissionIds)->get();
+    }
+
+    public function fetchPaginateAssignedUsers(Role $role, array $filters)
+    {
+        $query = $role->users();
+        if (!empty($filters['search'])) {
+            $query->where('username', 'like', "%{$filters['search']}%");
+        }
+        return $query->paginate($filters['per_page'] ?? 15, ['*'], 'page', $filters['page'] ?? 1);
+    }
+
+    public function fetchUnAssignedUsers(array $assignedUserIds)
+    {
+        return User::whereNotIn('id', $assignedUserIds)->get();
     }
 }

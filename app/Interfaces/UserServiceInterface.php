@@ -17,5 +17,6 @@ interface UserServiceInterface
     public function isUnique(string $fieldName, string $fieldValue): bool;
     public function getUnAssignedRoleUsers(Role $role): SupportCollection;
     public function restoreUsers(array $users);
+   public function fetchUserRoles(int $user,int $page,int $perPage,string $search = null);
 
 }

@@ -11,17 +11,37 @@ use Illuminate\Support\Collection;
 
 interface RoleServiceInterface
 {
-    public function getAllRoles(int $page, int $perPage, string $search);
-    public function findRoleById(int $id): Role;
-    public function createRole(array $data): Role;
-    public function updateRole(int $id, array $data): Role;
-    public function deleteRole(int $id): bool;
-    public function assignPermissionsToRole(int $roleId, array $permissionIds): Role;
-    public function getRolePermissions(Role $role, int $perPage): JsonResponse;
-    public function getRoleUsers(Role $role, int $perPage): JsonResponse;
-    public function getNotRolePermissions(int $roleId): JsonResponse;
-    public function revokePermissionsFromRole(int $roleId, array $permissions): Role;
-    public function isUniqueRoleName(string $roleName): bool;
-    public function assignUsersToRole(int $roleId, array $users): Role;
-    public function revokeUsersFromRole(int $roleId, array $users): Role;
+    /* #region CRUD */
+    public function paginateWithFilters(array $filters);
+
+    public function findById(int $id);
+
+    public function create(array $data);
+
+    public function update(int $id, array $data);
+
+    public function delete(int $id);
+
+    public function restore(int $id);
+    public function isUnique(string $name);
+    /* #endregion */
+
+    /* #region Assign Permissions */
+    public function assignPermissions(int $id, array $permissions);
+    public function revokePermissions(int $id, array $permissions);
+    /* #endregion */
+    /* #region Fetch Role Permissions  */
+    public function fetchAssignedPermissions(int $id,array $filters);
+    public function fetchUnAssignedPermissions(int $id);
+    /* #endregion */
+    /* #region Assign Users  */
+    public function assignUsers(int $id, array $users);
+    public function revokeUsers(int $id, array $users);
+    /* #endregion */
+
+    /* #region Fetch Role Users  */
+    public function fetchAssignedUsers(int $id,array $filters);
+    public function fetchUnAssignedUsers(int $id);
+    /* #endregion */
+
 }
